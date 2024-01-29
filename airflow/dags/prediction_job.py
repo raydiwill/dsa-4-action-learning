@@ -3,7 +3,6 @@ from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 import pandas as pd
 import logging
-import json
 import requests
 import os
 
@@ -16,14 +15,11 @@ folder_path = "/opt/data/good"
     description='Take files and output predictions',
     tags=['dsp', 'prediction_job'],
     schedule=timedelta(minutes=1),
-    start_date=days_ago(n=0, hour=1)
-    #catchup=False
+    start_date=days_ago(n=0, hour=1),
+    catchup=False
 )
 def prediction_job():
     @task
-    def get_data(file):
-        return pd.read_csv(file)
-    """
     def check_for_new_data(path):
         
         csv_files = [file for file in os.listdir(path) if
@@ -43,7 +39,6 @@ def prediction_job():
 
         merged_df = pd.concat(df_list, ignore_index=True)
         return merged_df
-    """
 
     @task
     def make_predictions(df):
@@ -87,8 +82,7 @@ def prediction_job():
         response_data = response.json()
         logging.info(f'{response_data}')
 
-    #df_to_predict = check_for_new_data(folder_path)
-    df_to_predict = get_data("../data/good/test_dag.csv")
+    df_to_predict = check_for_new_data(folder_path)
     make_predictions(df_to_predict)
 
 
