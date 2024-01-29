@@ -45,14 +45,14 @@ async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
 
     # Perform prediction
     input_data = preprocessor.transform(input_data)
-    prediction_result = model.predict(input_data)
-    for i in prediction_result.tolist():
+    prediction_result = model.predict([input_data, input_data])
+    for lst in prediction_result.tolist():
+        i = lst[0]
         customer.pred_probability = i
         if i > 0.75:
             customer.pred_churn = 1
             customer.pred_risk = "High"
-
-        if i > 0.4:
+        elif i > 0.4:
             customer.pred_churn = 1
             customer.pred_risk = "Low"
 
