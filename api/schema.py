@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class CustomerData(BaseModel):
-    id: str
+    user_id: str
     region: str
     tenure: str
     amount: float
