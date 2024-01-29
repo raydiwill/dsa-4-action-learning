@@ -13,7 +13,25 @@ class Base:
 class CustomerModel(Base):
     __tablename__ = 'customers_model'
 
-    id = Column(Integer, primary_key=True)
+    user_id = Column(String, primary_key=True)
+    region = Column(String)
+    tenure = Column(String)
+    amount = Column(Float)
+    frequence_rech = Column(Float)
+    revenue = Column(Float)
+    arpu_segment = Column(Float)
+    frequence = Column(Float)
+    data_volume = Column(Float)
+    on_net = Column(Float)
+    orange = Column(Float)
+    tigo = Column(Float)
+    regularity = Column(Float)
+    top_pack = Column(String)
+    freq_top_pack = Column(Float)
+    pred_probability = Column(Float)
+    pred_churn = Column(Integer)
+    pred_risk = Column(String)
+    pred_date = Column(DateTime, server_default=func.now())
 
 
 class ProblemStats(Base):
@@ -32,3 +50,8 @@ class CustomerReport(Base):
 
     report_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String, primary_key=True)
+    model_pred = Column(Integer)
+    actual = Column(Integer)
+    pred_risk = Column(String)
+    strategy = Column(String)
+    resolve = Column(String)
