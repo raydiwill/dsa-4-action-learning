@@ -5,6 +5,8 @@ from models import Base, CustomerModel, ProblemStats, CustomerReport
 from setup_db import *
 from schema import CustomerData
 from datetime import datetime
+from tensorflow.keras.models import load_model
+import joblib
 import pandas as pd
 import uvicorn
 
@@ -27,6 +29,40 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+model = load_model("../models/ensemble.h5")
+preprocessor = joblib.load("../notebooks/preprocessor.joblib")
+
+
+@app.post("/predict/")
+async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
+    customer = CustomerModel(**data.dict())
+
+    # Convert Pydantic model to DataFrame
+    input_data = pd.DataFrame([data.dict()])
+    input_data.drop(
+        columns=["user_id"], inplace=True, errors="ignore")
+
+    # Perform prediction
+    input_data = preprocessor.transform(input_data)
+    prediction_result = model.predict(input_data)
+    for i in prediction_result.tolist():
+        customer.pred_probability = i
+        if i > 0.75:
+            customer.pred_churn = 1
+            customer.pred_risk = "High"
+
+        if i > 0.4:
+            customer.pred_churn = 1
+            customer.pred_risk = "Low"
+
+        customer.pred_churn = 0
+        customer.pred_risk = "No"
+
+    db.add(customer)
+    db.commit()
+    print(prediction_result)
+    return {"prediction": prediction_result.tolist()}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8050)
