@@ -220,10 +220,11 @@ def data_ingestion():
         )
 
         validator_result = validator.validate()
-        return validator_result
+        return {"file": file, "validator_result": validator_result}
 
     @task
-    def raise_alert(validator_result):
+    def raise_alert(validator_output):
+        validator_result = validator_output["validator_result"]
         sender = user_email
         recipient = "trankhanhduong112@gmail.com"
         subject = "Data Quality Issues"
@@ -235,7 +236,9 @@ def data_ingestion():
                 logging.info(f'Email sent!')
 
     @task
-    def split_file(file, validator_result, folder_b, folder_c):
+    def split_file(validator_output, folder_b, folder_c):
+        file = validator_output["file"]
+        validator_result = validator_output["validator_result"]
         df = pd.read_csv(file)
         problem_rows = []
 
@@ -265,7 +268,8 @@ def data_ingestion():
             df_no_problems.to_csv(no_problems_file_path, index=False)
 
     @task
-    def save_log(validator_result, db_url):
+    def save_quality_issues(validator_output, db_url):
+        validator_result = validator_output["validator_result"]
         engine = create_engine(db_url)
         Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
@@ -298,8 +302,8 @@ def data_ingestion():
     chosen_file = read_file()
     validate = validate_data(chosen_file)
     raise_alert(validate)
-    split_file(chosen_file, validate, failed_folder, good_folder)
-    save_log(validate, DB_URL)
+    split_file(validate, failed_folder, good_folder)
+    save_quality_issues(validate, DB_URL)
 
 
 ingestion_dag = data_ingestion()
