@@ -38,7 +38,8 @@ def send_email(sender, recipient, subject, message):
     dag_id='prediction_job',
     description='Take files and output predictions',
     tags=['dsp', 'prediction_job'],
-    schedule=timedelta(minutes=2),
+    schedule_interval="0 9 1 * *",
+    #schedule=timedelta(minutes=30),
     start_date=days_ago(n=0, hour=1),
     catchup=False
 )
