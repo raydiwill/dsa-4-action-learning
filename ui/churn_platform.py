@@ -36,8 +36,8 @@ class SessionState:
     def __init__(self):
         self.submitted_feedback = False
 
-# Create a global variable to store session state
-session_state = SessionState()
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+
 
 def submit_feedback(selected_customers, feedback):
     db_config = {
