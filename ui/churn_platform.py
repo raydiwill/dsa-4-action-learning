@@ -101,25 +101,6 @@ def interactive_dashboard():
     st.subheader("CS Team Reports:")
     # Display feedback form here
 
-def fetch_data_from_database():
-    db_config = {
-        "user": "postgres",
-        "password": "0",
-        "host": "localhost",
-        "port": "5432",
-        "database": "churn"
-    }
-
-    query = "SELECT * FROM churn.test_pred LIMIT 50"
-
-    # Creating a connection to the database
-    engine = create_engine(f"postgresql+psycopg2://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
-
-    df = pd.read_sql(query, engine)
-
-    engine.dispose()
-
-    return df
 
 def filter_customers_by_risk(past_predictions, risk):
     return past_predictions[past_predictions['risk'].str.lower() == risk.lower()]
@@ -142,9 +123,6 @@ def past_predictions_page(api_url):
     response = requests.get(api_url, json=data)
     print(response)
     past_predictions = pd.DataFrame(response.json())
-
-    # Fetch data from the API instead of the database
-    #past_predictions = fetch_data_from_api(api_url)
 
     # Display a table with fetched data
     st.table(past_predictions)
