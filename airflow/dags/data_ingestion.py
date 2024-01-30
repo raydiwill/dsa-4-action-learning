@@ -41,9 +41,9 @@ def send_email(sender, recipient, subject, message):
     dag_id='data_ingestion',
     description='Take files and validate the quality',
     tags=['dsp', 'validate', 'ingestion'],
-    schedule=timedelta(minutes=1),
-    start_date=days_ago(n=0, hour=1),
-    catchup=False
+    schedule_interval='*/10 * * * * *',
+    #schedule=timedelta(minutes=0.5),
+    start_date=days_ago(n=0, hour=1)
 )
 def data_ingestion():
     default_folder = "/opt/data/default"
