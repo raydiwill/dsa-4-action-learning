@@ -1,49 +1,121 @@
-# import necessary libraries
 import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+from sqlalchemy.exc import SQLAlchemyError
 
-# Function to fetch data from PostgreSQL
-def fetch_data_from_postgresql():
-    # Replace these values with your PostgreSQL database connection details
+
+
+dummy_prediction_data = {"user_id": 1, "prediction": "churn", "probability": 0.75}
+
+dummy_past_predictions = [
+    {"user_id": 1, "prediction": "churn", "actual_result": "non-churn", "risk_level": "high"},
+    {"user_id": 2, "prediction": "non-churn", "actual_result": "non-churn", "risk_level": "low"},
+    {"user_id": 3, "prediction": "churn", "actual_result": "churn", "risk_level": "high"},
+    {"user_id": 4, "prediction": "non-churn", "actual_result": "non-churn", "risk_level": "low"},
+    {"user_id": 5, "prediction": "churn", "actual_result": "churn", "risk_level": "high"}
+]
+
+def get_predictions():
+    return dummy_prediction_data
+
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+
+# ... (rest of your code)
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+
+# ... (rest of your code)
+
+def submit_feedback(selected_customers, feedback):
     db_config = {
         "user": "postgres",
         "password": "0",
-        "host": "your_host",
-        "port": "your_port",
-        "database": "your_database"
+        "host": "localhost",
+        "port": "5432",
+        "database": "churn"
     }
 
-    # Create a connection to the PostgreSQL database
+    # Connection to the database
     engine = create_engine(f"postgresql+psycopg2://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
 
-    # Query to fetch data from the table (replace 'your_table_name' with your actual table name)
-    query = "SELECT * FROM your_table_name"
+    # Load table metadata
+    metadata = MetaData()
+    test_pred_table = Table('churn.test_pred', metadata, autoload_with=engine)
 
-    # Fetch data into a DataFrame
-    df = pd.read_sql(query, engine)
+    # Iterate over selected customers and update feedback in the database
+    for user_id in selected_customers:
+        feedback_data = {
+            "user_id": user_id,
+            "feedback": feedback
+        }
+
+        try:
+            # Build the update statement
+            stmt = update(test_pred_table).where(test_pred_table.c.user_id == feedback_data['user_id']).values(feedback=feedback_data['feedback'])
+
+            # Execute the update statement
+            result = engine.execute(stmt)
+            
+            # Check if the update was successful
+            if result.rowcount > 0:
+                st.success(f"Feedback updated for user {user_id}")
+            else:
+                st.warning(f"No records updated for user {user_id}")
+
+        except SQLAlchemyError as e:
+            st.error(f"Error during update: {e}")
 
     # Close the database connection
     engine.dispose()
 
+    st.success("Feedback submitted successfully.")
+
+def interactive_dashboard():
+    st.title("Churn Prediction Dashboard")
+
+    predictions = get_predictions()
+
+    st.subheader("Analyze Returned Predictions:")
+    st.write(f"Customer ID: {predictions['user_id']}")
+    st.write(f"Prediction: {predictions['prediction']}")
+    st.write(f"Probability: {predictions['probability']}")
+
+    if predictions['prediction'] == 'churn' and predictions['probability'] > 0.5:
+        st.warning("Churn predicted with high probability. Recommend retention strategies.")
+
+    st.subheader("Customer Profiling:")
+    # Add customer profiling details here
+
+    st.subheader("CS Team Reports:")
+    # Display feedback form here
+
+def fetch_data_from_database():
+    db_config = {
+        "user": "postgres",
+        "password": "0",
+        "host": "localhost",
+        "port": "5432",
+        "database": "churn"
+    }
+
+    query = "SELECT * FROM churn.test_pred LIMIT 50"
+
+    # Creating a connection to the database
+    engine = create_engine(f"postgresql+psycopg2://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
+
+    df = pd.read_sql(query, engine)
+
+    engine.dispose()
+
     return df
 
-# Function to simulate submitting feedback from the CS Team
-def submit_feedback(selected_customers, feedback):
-    # Dummy logic for submitting feedback (for demonstration purposes)
-    for customer_id in selected_customers:
-        st.success(f"Feedback submitted for Customer ID: {customer_id}")
+def filter_customers_by_risk(past_predictions, risk):
+    return past_predictions[past_predictions['risk'].str.lower() == risk.lower()]
 
-# Function to filter customers based on risk level
-def filter_customers_by_risk(past_predictions, risk_level):
-    return [customer for customer in past_predictions if customer['risk_level'].lower() == risk_level.lower()]
-
-# Streamlit Past Predictions Page
 def past_predictions_page():
     st.title("Past Predictions")
 
-    # Fetch data from PostgreSQL instead of using dummy data
-    past_predictions = fetch_data_from_postgresql()
+    # Fetch data from the database
+    past_predictions = fetch_data_from_database()
 
     # Display a table with fetched data
     st.table(past_predictions)
@@ -55,11 +127,10 @@ def past_predictions_page():
 
         # Display a different table for filtered customers
         st.subheader(f"Filtered Customers (Risk Level: {risk_level_filter}):")
-        filtered_df = pd.DataFrame(filtered_customers)
-        st.table(filtered_df)
+        st.table(filtered_customers)
 
         # Selection mechanism
-        selected_customers = st.multiselect("Select customers to provide feedback:", filtered_df["customer_id"].tolist())
+        selected_customers = st.multiselect("Select customers to provide feedback:", filtered_customers["user_id"].tolist())
 
         # Confirm selected choices with a button
         if st.button("Confirm Selected Customers"):
@@ -68,15 +139,15 @@ def past_predictions_page():
             if st.button("Submit Feedback"):
                 submit_feedback(selected_customers, feedback_text)
 
-# Main Streamlit App
 def main():
     st.set_page_config(page_title="Churn Prediction Platform", page_icon="📊")
 
-    page = st.sidebar.selectbox("Select a page:", ["Past Predictions"])
+    page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions"])
 
-    if page == "Past Predictions":
+    if page == "Interactive Dashboard":
+        interactive_dashboard()
+    elif page == "Past Predictions":
         past_predictions_page()
 
-# Run the Streamlit app
 if __name__ == "__main__":
     main()
