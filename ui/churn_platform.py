@@ -1,8 +1,22 @@
 import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine, update, MetaData, Table
 from sqlalchemy.exc import SQLAlchemyError
 
+DEFAULT_USERNAME = "admin"
+DEFAULT_PASSWORD = "password"
+
+def login():
+    st.title("Login")
+    username = st.text_input("Username:")
+    password = st.text_input("Password:", type="password")
+
+    if st.button("Login"):
+        if username == DEFAULT_USERNAME and password == DEFAULT_PASSWORD:
+            st.session_state.logged_in = True
+            st.success("Login successful! You can now access all pages.")
+        else:
+            st.error("Invalid username or password. Please try again.")
 
 
 dummy_prediction_data = {"user_id": 1, "prediction": "churn", "probability": 0.75}
@@ -18,12 +32,12 @@ dummy_past_predictions = [
 def get_predictions():
     return dummy_prediction_data
 
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+class SessionState:
+    def __init__(self):
+        self.submitted_feedback = False
 
-# ... (rest of your code)
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
-
-# ... (rest of your code)
+# Create a global variable to store session state
+session_state = SessionState()
 
 def submit_feedback(selected_customers, feedback):
     db_config = {
@@ -41,6 +55,9 @@ def submit_feedback(selected_customers, feedback):
     metadata = MetaData()
     test_pred_table = Table('churn.test_pred', metadata, autoload_with=engine)
 
+    # Initialize an empty list to store feedback
+    feedback_list = []
+
     # Iterate over selected customers and update feedback in the database
     for user_id in selected_customers:
         feedback_data = {
@@ -50,24 +67,32 @@ def submit_feedback(selected_customers, feedback):
 
         try:
             # Build the update statement
-            stmt = update(test_pred_table).where(test_pred_table.c.user_id == feedback_data['user_id']).values(feedback=feedback_data['feedback'])
+            stmt = (
+                update(test_pred_table)
+                .where(test_pred_table.c.user_id == feedback_data['user_id'])
+                .values(feedback=feedback_data['feedback'])
+            )
 
             # Execute the update statement
             result = engine.execute(stmt)
-            
+
             # Check if the update was successful
             if result.rowcount > 0:
-                st.success(f"Feedback updated for user {user_id}")
+                feedback_list.append(f"Feedback updated for user {user_id}")
             else:
-                st.warning(f"No records updated for user {user_id}")
+                feedback_list.append(f"No records updated for user {user_id}")
 
         except SQLAlchemyError as e:
-            st.error(f"Error during update: {e}")
+            feedback_list.append(f"Error during update for user {user_id}: {e}")
 
     # Close the database connection
     engine.dispose()
 
-    st.success("Feedback submitted successfully.")
+    # Display feedback messages at the bottom of the Streamlit page
+    st.write("Feedback submitted successfully.")
+    for feedback_msg in feedback_list:
+        st.write(feedback_msg)
+
 
 def interactive_dashboard():
     st.title("Churn Prediction Dashboard")
@@ -136,11 +161,21 @@ def past_predictions_page():
         if st.button("Confirm Selected Customers"):
             # Popup for feedback
             feedback_text = st.text_area("Provide Feedback:")
-            if st.button("Submit Feedback"):
-                submit_feedback(selected_customers, feedback_text)
+
+            # Check if feedback has already been submitted
+            if not session_state.submitted_feedback:
+                if st.button("Submit Feedback"):
+                    submit_feedback(selected_customers, feedback_text)
+                    session_state.submitted_feedback = True
 
 def main():
-    st.set_page_config(page_title="Churn Prediction Platform", page_icon="📊")
+    st.set_page_config(page_title="Churn Prediction Platform ", page_icon="📊")
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        login()
+        return
 
     page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions"])
 
