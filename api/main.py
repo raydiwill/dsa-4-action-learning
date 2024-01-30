@@ -6,6 +6,7 @@ from setup_db import *
 from schema import CustomerData
 from datetime import datetime
 from tensorflow.keras.models import load_model
+from typing import List
 import joblib
 import pandas as pd
 import uvicorn
@@ -35,34 +36,64 @@ preprocessor = joblib.load("../notebooks/preprocessor.joblib")
 
 
 @app.post("/predict/")
-async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
-    customer = CustomerModel(**data.dict())
+async def predict(data: List[CustomerData],
+                  db: SessionLocal = Depends(get_db)):
+    # Convert the list of Pydantic models to a list of dictionaries
+    data_dicts = [item.dict() for item in data]
 
-    # Convert Pydantic model to DataFrame
-    input_data = pd.DataFrame([data.dict()])
-    input_data.drop(
-        columns=["user_id"], inplace=True, errors="ignore")
+    # Create a DataFrame from the list of dictionaries
+    input_data = pd.DataFrame(data_dicts)
+    input_data.drop(columns=["user_id"], inplace=True, errors="ignore")
 
-    # Perform prediction
-    input_data = preprocessor.transform(input_data)
-    prediction_result = model.predict([input_data, input_data])
-    for lst in prediction_result.tolist():
-        i = lst[0]
-        customer.pred_probability = i
-        if i > 0.75:
-            customer.pred_churn = 1
-            customer.pred_risk = "High"
-        elif i > 0.4:
-            customer.pred_churn = 1
-            customer.pred_risk = "Low"
+    # Perform preprocessing on the entire DataFrame
+    processed_data = preprocessor.transform(input_data)
 
-        customer.pred_churn = 0
-        customer.pred_risk = "No"
+    # Perform prediction on the preprocessed data
+    prediction_results = model.predict([processed_data, processed_data])
 
-    db.add(customer)
+    print("predicted")
+
+    print(prediction_results)
+    results = []
+    # Process each prediction result and update the database
+    for idx, prediction in enumerate(prediction_results):
+        pred_prob = float(prediction[0])
+
+        churn = 1 if pred_prob > 0.75 else 0
+        risk = "High" if pred_prob > 0.75 \
+            else "Low" if pred_prob > 0.4 \
+            else "No"
+        customer_data = data_dicts[idx]
+        customer_data.update({"pred_probability": pred_prob,
+                              "pred_churn": churn,
+                              "pred_risk": risk})
+
+        # Create and add CustomerModel instance to database
+        customer = CustomerModel(**customer_data)
+        db.add(customer)
+        results.append(customer_data)
+
+    # Commit the changes to the database
     db.commit()
-    print(prediction_result)
-    return {"prediction": prediction_result.tolist()}
+
+    # Return the prediction results
+    return {"predictions": results}
+
+
+@app.get('/past-predictions/')
+def get_predict(dates: dict, db: SessionLocal = Depends(get_db)):
+    start_date = dates["start_date"]
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = dates["end_date"]
+    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    predictions = db.query(CustomerModel).filter(
+        and_(CustomerModel.pred_date >= start_date,
+             CustomerModel.pred_date < end_date)
+    ).all()
+
+    return predictions
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8050)
