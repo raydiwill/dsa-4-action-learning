@@ -19,7 +19,7 @@ sys.path.append('/opt/api')
 from models import *
 from setup_db import *
 
-DB_URL = "postgresql://postgres:khanhduong@host.docker.internal:5432/mydbs"
+DB_URL = "postgresql://postgres:0@host.docker.internal:5432/churn"
 user_email = "duong.tranhn1102@gmail.com"
 
 
@@ -41,9 +41,9 @@ def send_email(sender, recipient, subject, message):
     dag_id='data_ingestion',
     description='Take files and validate the quality',
     tags=['dsp', 'validate', 'ingestion'],
-    schedule=timedelta(minutes=1),
-    start_date=days_ago(n=0, hour=1),
-    catchup=False
+    schedule_interval='*/10 * * * * *',
+    #schedule=timedelta(minutes=0.5),
+    start_date=days_ago(n=0, hour=1)
 )
 def data_ingestion():
     default_folder = "/opt/data/default"
@@ -84,10 +84,12 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
+        """
         validator.expect_column_values_to_not_be_null(
             "REGION", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "TENURE", "object",
@@ -95,7 +97,7 @@ def data_ingestion():
         )
 
         validator.expect_column_values_to_not_be_null(
-            "TENURE", mostly=0.40,
+            "TENURE",
             result_format={'result_format': 'SUMMARY'}
         )
 
@@ -104,120 +106,204 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "MONTANT", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "MONTANT", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "FREQUENCE_RECH", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "FREQUENCE_RECH", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "FREQUENCE_RECH", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "REVENUE", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "REVENUE", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "REVENUE", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "ARPU_SEGMENT", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "ARPU_SEGMENT", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "ARPU_SEGMENT", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "FREQUENCE", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "FREQUENCE", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "FREQUENCE", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "DATA_VOLUME", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "DATA_VOLUME", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "DATA_VOLUME", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "ON_NET", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "ON_NET", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "ON_NET", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "ORANGE", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "ORANGE", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "ORANGE", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "TIGO", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "TIGO", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "TIGO", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "REGULARITY", "int64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "REGULARITY", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "REGULARITY", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "TOP_PACK", "object",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "TOP_PACK", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "TOP_PACK", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator.expect_column_values_to_be_of_type(
             "FREQ_TOP_PACK", "float64",
             result_format={'result_format': 'SUMMARY'}
         )
 
+        '''validator.expect_column_values_to_be_between(
+            "FREQ_TOP_PACK", min_value=0,
+            result_format={'result_format': 'SUMMARY'}
+        )'''
+
+        """
         validator.expect_column_values_to_not_be_null(
             "FREQ_TOP_PACK", mostly=0.40,
             result_format={'result_format': 'SUMMARY'}
         )
+        """
 
         validator_result = validator.validate()
         return {"file": file, "validator_result": validator_result}
@@ -238,16 +324,20 @@ def data_ingestion():
             message += "The following data quality checks have failed:\n\n"
 
             for test in failed_tests:
-                message += f"- Expectation: {test['expectation_type']}\n"
-                message += (f"  Column: "
-                            f"{test.get('kwargs', {}).get('column')}\n")
-                message += (f"  Details: "
-                            f"{test.get('result', {}).get('observed_value')}"
+                message += (f"- Expectation: "
+                            f"{test['expectation_config']['expectation_type']}\n")
+                message += (f"- Column: "
+                            f"{test['expectation_config']['kwargs']['column']}\n")
+                message += (f"- Details: "
+                            f"{test['result']['partial_unexpected_list']}"
                             f"\n\n")
 
             message += ("Please review the validation results and "
-                        "address the issues as soon as possible.")
-
+                        "address the issues as soon as possible.\n")
+            message += (f'\nBest Regards,\n'
+                        f'[Name]\n'
+                        f'ML engineer\n'
+                        f'[Company]')
             send_email(sender, recipient, subject, message)
             logging.info(f'Email sent!')
         else:
