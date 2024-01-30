@@ -51,12 +51,15 @@ async def predict(data: List[CustomerData],
     # Perform prediction on the preprocessed data
     prediction_results = model.predict([processed_data, processed_data])
 
+    print("predicted")
+
+    print(prediction_results)
     results = []
     # Process each prediction result and update the database
     for idx, prediction in enumerate(prediction_results):
         pred_prob = float(prediction[0])
 
-        churn = 1 if pred_prob > 0.4 else 0
+        churn = 1 if pred_prob > 0.75 else 0
         risk = "High" if pred_prob > 0.75 \
             else "Low" if pred_prob > 0.4 \
             else "No"
@@ -93,4 +96,4 @@ def get_predict(dates: dict, db: SessionLocal = Depends(get_db)):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8050, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8050)
