@@ -38,7 +38,8 @@ def send_email(sender, recipient, subject, message):
     dag_id='prediction_job',
     description='Take files and output predictions',
     tags=['dsp', 'prediction_job'],
-    schedule=timedelta(minutes=2),
+    schedule_interval="0 9 1 * *",
+    #schedule=timedelta(minutes=30),
     start_date=days_ago(n=0, hour=1),
     catchup=False
 )
@@ -133,8 +134,15 @@ def prediction_job():
         if high_risk:
             subject = "High-Risk Churn predictions detected"
             body = (f'Dear Analysis team,\n\n'
-                    f'There are {len(high_risk)} high-risk churners detected.'
-                    f'\n\nPlease check dashboard.')
+                    f'\nWe have completed our latest scheduled '
+                    f'churn prediction, we wanted to share with you:\n'
+                    f'\n    - Date: from {dates["start_date"]} to {dates["end_date"]}'
+                    f'\n    - Total number of High-risk churners: {len(high_risk)}'
+                    f'\n\nPlease check the dashboard for more information.'
+                    f'\nBest Regards,\n'
+                    f'[Name]\n'
+                    f'ML engineer\n'
+                    f'[Company]')
             send_email(sender, recipient, subject, body)
             logging.info(f'Email sent!')
         else:
@@ -148,7 +156,7 @@ def prediction_job():
                     f'\nWe encourage you to review the attached detailed report for a comprehensive understanding of the churn analysis. Please feel free to reach out if you have any questions or need further clarification on any aspects of this report.\n'
                     f'\nBest Regards,\n'
                     f'[Name]\n'
-                    f'[ML engineer]\n'
+                    f'ML engineer\n'
                     f'[Company]')
             send_email(sender, recipient, subject, body)
             logging.info(f'Email sent!')
