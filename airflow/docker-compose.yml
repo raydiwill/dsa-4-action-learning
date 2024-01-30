@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  action-learning-airflow:
+    image: my-airflow-image:latest
+
+    volumes:
+      - ./:/opt/airflow/
+      - ../data:/opt/data
+      - ../api:/opt/api
+
+    ports:
+      - "8080:8080"
+
+    command: airflow standalone
