@@ -148,7 +148,7 @@ def prediction_job():
                     f'\nWe encourage you to review the attached detailed report for a comprehensive understanding of the churn analysis. Please feel free to reach out if you have any questions or need further clarification on any aspects of this report.\n'
                     f'\nBest Regards,\n'
                     f'[Name]\n'
-                    f'[ML engineer]\n'
+                    f'ML engineer\n'
                     f'[Company]')
             send_email(sender, recipient, subject, body)
             logging.info(f'Email sent!')
