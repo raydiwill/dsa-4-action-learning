@@ -12,6 +12,12 @@ POST_URL = "http://host.docker.internal:8050/predict/"
 GET_URL = "http://host.docker.internal:8050/past-predictions/"
 folder_path = "/opt/data/good"
 user_email = "duong.tranhn1102@gmail.com"
+dates = {
+    "start_date": (datetime.today()).strftime(
+        "%Y-%m-%d"),
+    "end_date": (datetime.now() + timedelta(days=1)).strftime(
+        "%Y-%m-%d")
+}
 
 
 def send_email(sender, recipient, subject, message):
@@ -104,13 +110,6 @@ def prediction_job():
 
     @task
     def get_past_predictions(status):
-        dates = {
-            "start_date": (datetime.today()).strftime(
-                "%Y-%m-%d"),
-            "end_date": (datetime.now() + timedelta(days=1)).strftime(
-                "%Y-%m-%d")
-        }
-
         response = requests.get(
             GET_URL,
             json=dates
@@ -124,8 +123,13 @@ def prediction_job():
         sender = user_email
         recipient = "duong-khanh.tran@epita.fr"
 
+        total_preds = len(predictions)
+        churners = len([pred for pred in predictions if
+                     pred['pred_churn'] == 1])
         high_risk = [pred for pred in predictions if
                      pred['pred_risk'] == 'High']
+
+        churn_perc = (churners / total_preds) * 100
         if high_risk:
             subject = "High-Risk Churn predictions detected"
             body = (f'Dear Analysis team,\n\n'
@@ -136,7 +140,16 @@ def prediction_job():
         else:
             subject = "Churn predictions notification"
             body = (f'Dear Analysis team,\n'
-                    f'\nThere are churners detected by the model.\n')
+                    f'\nWe have completed our latest scheduled '
+                    f'churn prediction, we wanted to share with you:\n'
+                    f'\n    - Date: from {dates["start_date"]} to {dates["end_date"]}'
+                    f'\n    - Total number of churners: {churners}'
+                    f'\n    - Percentage of churners: {churn_perc}%\n'
+                    f'\nWe encourage you to review the attached detailed report for a comprehensive understanding of the churn analysis. Please feel free to reach out if you have any questions or need further clarification on any aspects of this report.\n'
+                    f'\nBest Regards,\n'
+                    f'[Name]\n'
+                    f'[ML engineer]\n'
+                    f'[Company]')
             send_email(sender, recipient, subject, body)
             logging.info(f'Email sent!')
 
@@ -144,7 +157,7 @@ def prediction_job():
     df_to_predict = check_for_new_data(folder_path)
     status_code = make_predictions(df_to_predict)
     pred_dict = get_past_predictions(status_code)
-    #notify_team(pred_dict)
+    notify_team(pred_dict)
 
 
 scheduled_job_dag = prediction_job()
