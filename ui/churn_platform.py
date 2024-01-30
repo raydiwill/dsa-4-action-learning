@@ -1,26 +1,41 @@
+import datetime
 import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
 from sqlalchemy.exc import SQLAlchemyError
+import requests
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+#from ..api.config import settings  
+from pathlib import Path
+import os
 
 
+GET_URL = "http://localhost:8050/past-predictions/"
+
+
+# Load environment variables from .env file
+env_path = Path('.') / 'myenv.env'
+load_dotenv(dotenv_path=env_path)
 
 dummy_prediction_data = {"user_id": 1, "prediction": "churn", "probability": 0.75}
 
-dummy_past_predictions = [
-    {"user_id": 1, "prediction": "churn", "actual_result": "non-churn", "risk_level": "high"},
-    {"user_id": 2, "prediction": "non-churn", "actual_result": "non-churn", "risk_level": "low"},
-    {"user_id": 3, "prediction": "churn", "actual_result": "churn", "risk_level": "high"},
-    {"user_id": 4, "prediction": "non-churn", "actual_result": "non-churn", "risk_level": "low"},
-    {"user_id": 5, "prediction": "churn", "actual_result": "churn", "risk_level": "high"}
-]
+def fetch_data_from_api(api_url, data):
+    try:
+        url = api_url
+        response = requests.get(url, json=data)
+        if response.status_code == 200:
+            data = response.json()
+            return pd.DataFrame(data)
+        else:
+            st.error(f"Error fetching data from API. Status code: {response.status_code}")
+    except Exception as e:
+        st.error(f"Error fetching data from API: {e}")
+    return pd.DataFrame()
+
 
 def get_predictions():
     return dummy_prediction_data
-
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
-
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
 
 
 def submit_feedback(selected_customers, feedback):
@@ -86,34 +101,28 @@ def interactive_dashboard():
     st.subheader("CS Team Reports:")
     # Display feedback form here
 
-def fetch_data_from_database():
-    db_config = {
-        "user": "postgres",
-        "password": "0",
-        "host": "localhost",
-        "port": "5432",
-        "database": "churn"
-    }
-
-    query = "SELECT * FROM churn.test_pred LIMIT 50"
-
-    # Creating a connection to the database
-    engine = create_engine(f"postgresql+psycopg2://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
-
-    df = pd.read_sql(query, engine)
-
-    engine.dispose()
-
-    return df
 
 def filter_customers_by_risk(past_predictions, risk):
     return past_predictions[past_predictions['risk'].str.lower() == risk.lower()]
 
-def past_predictions_page():
+
+def past_predictions_page(api_url):
     st.title("Past Predictions")
 
-    # Fetch data from the database
-    past_predictions = fetch_data_from_database()
+    start_date = st.date_input("Start Date")
+    today = datetime.date.today()
+    end_date = st.date_input("End Date",
+                             max_value=today + datetime.timedelta(days=1))
+    
+    data = {
+        "start_date": start_date.strftime("%Y-%m-%d"),
+        "end_date": end_date.strftime("%Y-%m-%d")
+        #"pred_source": prediction_source
+    }
+    
+    response = requests.get(api_url, json=data)
+    print(response)
+    past_predictions = pd.DataFrame(response.json())
 
     # Display a table with fetched data
     st.table(past_predictions)
@@ -121,7 +130,7 @@ def past_predictions_page():
     # Filter customers based on risk level
     risk_level_filter = st.selectbox("Filter by Risk Level:", ["All", "High", "Low"])
     if risk_level_filter != "All":
-        filtered_customers = filter_customers_by_risk(past_predictions, risk_level_filter)
+        filtered_customers = past_predictions[past_predictions['pred_risk'].str.lower() == risk_level_filter.lower()]
 
         # Display a different table for filtered customers
         st.subheader(f"Filtered Customers (Risk Level: {risk_level_filter}):")
@@ -137,6 +146,7 @@ def past_predictions_page():
             if st.button("Submit Feedback"):
                 submit_feedback(selected_customers, feedback_text)
 
+
 def main():
     st.set_page_config(page_title="Churn Prediction Platform", page_icon="📊")
 
@@ -145,7 +155,8 @@ def main():
     if page == "Interactive Dashboard":
         interactive_dashboard()
     elif page == "Past Predictions":
-        past_predictions_page()
+        # Update the API URL based on your actual API endpoint
+        past_predictions_page(GET_URL)
 
 if __name__ == "__main__":
     main()

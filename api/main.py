@@ -87,7 +87,7 @@ def get_predict(dates: dict, db: SessionLocal = Depends(get_db)):
     predictions = db.query(CustomerModel).filter(
         and_(CustomerModel.pred_date >= start_date,
              CustomerModel.pred_date < end_date)
-    ).all()
+    ).limit(25).all()
 
     return predictions
 

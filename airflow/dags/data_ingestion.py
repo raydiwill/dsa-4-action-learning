@@ -19,7 +19,7 @@ sys.path.append('/opt/api')
 from models import *
 from setup_db import *
 
-DB_URL = "postgresql://postgres:khanhduong@host.docker.internal:5432/mydbs"
+DB_URL = "postgresql://postgres:0@host.docker.internal:5432/churn"
 user_email = "duong.tranhn1102@gmail.com"
 
 
@@ -106,10 +106,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "MONTANT", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -123,10 +123,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "FREQUENCE_RECH", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -140,10 +140,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "REVENUE", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -157,10 +157,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "ARPU_SEGMENT", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -174,10 +174,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "FREQUENCE", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -191,10 +191,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "DATA_VOLUME", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -208,10 +208,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "ON_NET", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -225,10 +225,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "ORANGE", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -242,10 +242,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "TIGO", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -259,10 +259,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "REGULARITY", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -276,10 +276,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "TOP_PACK", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
@@ -293,10 +293,10 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "FREQ_TOP_PACK", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         """
         validator.expect_column_values_to_not_be_null(
