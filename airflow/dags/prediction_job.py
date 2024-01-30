@@ -134,8 +134,15 @@ def prediction_job():
         if high_risk:
             subject = "High-Risk Churn predictions detected"
             body = (f'Dear Analysis team,\n\n'
-                    f'There are {len(high_risk)} high-risk churners detected.'
-                    f'\n\nPlease check dashboard.')
+                    f'\nWe have completed our latest scheduled '
+                    f'churn prediction, we wanted to share with you:\n'
+                    f'\n    - Date: from {dates["start_date"]} to {dates["end_date"]}'
+                    f'\n    - Total number of High-risk churners: {len(high_risk)}'
+                    f'\n\nPlease check the dashboard for more information.'
+                    f'\nBest Regards,\n'
+                    f'[Name]\n'
+                    f'ML engineer\n'
+                    f'[Company]')
             send_email(sender, recipient, subject, body)
             logging.info(f'Email sent!')
         else:
