@@ -228,12 +228,30 @@ def data_ingestion():
         sender = user_email
         recipient = "trankhanhduong112@gmail.com"
         subject = "Data Quality Issues"
-        message = "Data quality issues detected. Check the logs for details."
 
-        for result in validator_result["results"]:
-            if not result["success"]:
-                send_email(sender, recipient, subject, message)
-                logging.info(f'Email sent!')
+        failed_tests = [result for result in validator_result["results"] if
+                        not result["success"]]
+        if failed_tests:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            message = f"Dear Engineering team,\n\n"
+            message += f"Data Quality Alert - {timestamp}\n\n"
+            message += "The following data quality checks have failed:\n\n"
+
+            for test in failed_tests:
+                message += f"- Expectation: {test['expectation_type']}\n"
+                message += (f"  Column: "
+                            f"{test.get('kwargs', {}).get('column')}\n")
+                message += (f"  Details: "
+                            f"{test.get('result', {}).get('observed_value')}"
+                            f"\n\n")
+
+            message += ("Please review the validation results and "
+                        "address the issues as soon as possible.")
+
+            send_email(sender, recipient, subject, message)
+            logging.info(f'Email sent!')
+        else:
+            logging.info('No data quality issues detected.')
 
     @task
     def split_file(validator_output, folder_b, folder_c):
