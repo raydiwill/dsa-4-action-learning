@@ -1,14 +1,13 @@
 import datetime
 import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
 from sqlalchemy.exc import SQLAlchemyError
 import requests
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
-#from ..api.config import settings  
 from pathlib import Path
-import os
+from email.mime.text import MIMEText
+import smtplib
 
 
 GET_URL = "http://localhost:8050/past-predictions/"
@@ -19,6 +18,22 @@ env_path = Path('.') / 'myenv.env'
 load_dotenv(dotenv_path=env_path)
 
 dummy_prediction_data = {"user_id": 1, "prediction": "churn", "probability": 0.75}
+user_email = "duong.tranhn1102@gmail.com"
+
+
+def send_email(sender, recipient, subject, message):
+    # Create the message
+    message = MIMEText(message)
+    message["Subject"] = subject
+    message["From"] = sender
+    message["To"] = recipient
+
+    # Establish a connection with the SMTP server
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(user_email, "ulws pdlo avlh oggs")
+        server.sendmail(sender, recipient, message.as_string())
+
 
 def fetch_data_from_api(api_url, data):
     try:
@@ -82,6 +97,7 @@ def submit_feedback(selected_customers, feedback):
 
     st.success("Feedback submitted successfully.")
 
+
 def interactive_dashboard():
     st.title("Churn Prediction Dashboard")
 
@@ -117,11 +133,9 @@ def past_predictions_page(api_url):
     data = {
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d")
-        #"pred_source": prediction_source
     }
     
     response = requests.get(api_url, json=data)
-    print(response)
     past_predictions = pd.DataFrame(response.json())
 
     # Display a table with fetched data
@@ -147,16 +161,31 @@ def past_predictions_page(api_url):
                 submit_feedback(selected_customers, feedback_text)
 
 
+def send_recommendations_page():
+    st.title("Send Recommendation to Customer Service")
+
+    to_address = st.text_input("Recipient Email")
+    subject = st.text_input("Subject")
+    message = st.text_area("Message")
+
+    if st.button("Send Email"):
+        if send_email(user_email, to_address, subject, message):
+            print("Sent!")
+        st.toast("Email sent successfully.", icon="🎉")
+
+
 def main():
     st.set_page_config(page_title="Churn Prediction Platform", page_icon="📊")
 
-    page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions"])
+    page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
 
     if page == "Interactive Dashboard":
         interactive_dashboard()
     elif page == "Past Predictions":
-        # Update the API URL based on your actual API endpoint
         past_predictions_page(GET_URL)
+    elif page == "Send Recommendations":
+        send_recommendations_page()
+
 
 if __name__ == "__main__":
     main()
