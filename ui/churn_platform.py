@@ -69,14 +69,14 @@ def fetch_data_from_api(api_url, data):
 def submit_feedback(selected_customers, used_feedback):
     db_config = {
         "user": "postgres",
-        "password": "0",
+        "password": "khanhduong",
         "host": "localhost",
         "port": "5432",
-        "database": "churn"
+        "database": "dl"
     }
     # print("Selected Customers:", selected_customers)
 
-    engine = create_engine("postgresql://postgres:0@localhost:5432/churn")
+    engine = create_engine("postgresql://postgres:khanhduong@localhost:5432/dl")
 
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -157,7 +157,8 @@ def past_predictions_page(api_url):
 
     start_date = st.date_input("Start Date")
     today = datetime.date.today()
-    end_date = st.date_input("End Date", max_value=today + datetime.timedelta(days=1))
+    end_date = st.date_input("End Date",
+                             max_value=today + datetime.timedelta(days=1))
 
     data = {
         "start_date": start_date.strftime("%Y-%m-%d"),
@@ -239,8 +240,6 @@ def display_login_page():
             st.error("Invalid username or password. Please try again.")
 
 
-# Main function
-
 def send_recommendations_page():
     st.title("Send Recommendation to Customer Service")
 
@@ -263,24 +262,16 @@ def main():
         display_login_page()
         return
 
-    # User is logged in, display the selected page
-    page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
     # Define the chatbot toggle state in the session
     if 'show_chatbot' not in st.session_state:
         st.session_state['show_chatbot'] = False
 
     page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
 
-    #if page == "Interactive Dashboard":
-    #    interactive_dashboard()
-    if page == "Past Predictions":
     if page == "Interactive Dashboard":
         interactive_dashboard()
     elif page == "Past Predictions":
         past_predictions_page(GET_URL)
-    elif page == "Send Recommendations":
-        send_recommendations_page()
-
     elif page == "Send Recommendations":
         send_recommendations_page()
 
