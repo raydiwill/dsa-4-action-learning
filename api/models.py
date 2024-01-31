@@ -51,10 +51,11 @@ class CustomerReport(Base):
 
     report_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String)
-    model_pred = Column(Integer)
-    actual = Column(Integer)
+    pred_churn = Column(Integer)
     pred_risk = Column(String)
+    actual_churn = Column(Integer)
     strategy = Column(String)
+    method = Column(String)
     resolve = Column(String)
 
 
