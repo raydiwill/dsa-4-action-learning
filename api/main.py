@@ -78,17 +78,21 @@ async def predict(data: List[CustomerData],
 
 
 @app.get('/past-predictions/')
-def get_predict(dates: dict, db: SessionLocal = Depends(get_db)):
-    start_date = dates["start_date"]
+def get_predict(data: dict, db: SessionLocal = Depends(get_db)):
+    start_date = data["start_date"]
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-    end_date = dates["end_date"]
+    end_date = data["end_date"]
     end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    predictions = db.query(CustomerModel).filter(
+    query = db.query(CustomerModel).filter(
         and_(CustomerModel.pred_date >= start_date,
              CustomerModel.pred_date < end_date)
-    ).limit(25).all()
+    )
+    limit = data["limit"]
+    if limit is not None:
+        query = query.limit(limit)
 
+    predictions = query.all()
     return predictions
 
 
