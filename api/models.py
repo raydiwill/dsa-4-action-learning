@@ -56,3 +56,11 @@ class CustomerReport(Base):
     pred_risk = Column(String)
     strategy = Column(String)
     resolve = Column(String)
+
+
+class ModelFeedbacks(Base):
+    __tablename__ = 'feedbacks_report'
+
+    feedback_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String)
+    feedbacks = Column(String)

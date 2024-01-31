@@ -12,11 +12,12 @@ POST_URL = "http://host.docker.internal:8050/predict/"
 GET_URL = "http://host.docker.internal:8050/past-predictions/"
 folder_path = "/opt/data/good"
 user_email = "duong.tranhn1102@gmail.com"
-dates = {
+data = {
     "start_date": (datetime.today()).strftime(
         "%Y-%m-%d"),
     "end_date": (datetime.now() + timedelta(days=1)).strftime(
-        "%Y-%m-%d")
+        "%Y-%m-%d"),
+    "limit": None
 }
 
 
@@ -38,8 +39,8 @@ def send_email(sender, recipient, subject, message):
     dag_id='prediction_job',
     description='Take files and output predictions',
     tags=['dsp', 'prediction_job'],
-    schedule_interval="0 9 1 * *",
-    #schedule=timedelta(minutes=30),
+    #schedule_interval="0 9 1 * *",
+    schedule=timedelta(minutes=30),
     start_date=days_ago(n=0, hour=1),
     catchup=False
 )
@@ -105,44 +106,49 @@ def prediction_job():
             json=prediction_data
         )
 
-        response_data = response.json()
-        logging.info(f'{response_data}')
+        # response_data = response.json()
+        # logging.info(f'{response_data}')
         return response.status_code
 
     @task
     def get_past_predictions(status):
         response = requests.get(
             GET_URL,
-            json=dates
+            json=data
         )
 
         past_predictions = pd.DataFrame(response.json())
-        return past_predictions.to_dict('records')
+        return past_predictions
 
     @task
-    def notify_team(predictions):
+    def notify_team(predictions_df):
         sender = user_email
         recipient = "duong-khanh.tran@epita.fr"
 
-        total_preds = len(predictions)
-        churners = len([pred for pred in predictions if
-                     pred['pred_churn'] == 1])
-        high_risk = [pred for pred in predictions if
-                     pred['pred_risk'] == 'High']
+        total_preds = len(predictions_df)
+        logging.info(f'total_pred: {total_preds}')
+
+        churners = len(predictions_df[predictions_df['pred_churn'] == 1])
+        logging.info(f'churners: {churners}')
+
+        high_risk = len(predictions_df[predictions_df['pred_risk'] == 'High'])
+        logging.info(f'high_risk: {high_risk}')
 
         churn_perc = (churners / total_preds) * 100
+        high_risk_perc = (high_risk / churners) * 100
         if high_risk:
             subject = "High-Risk Churn predictions detected"
-            body = (f'Dear Analysis team,\n\n'
-                    f'\nWe have completed our latest scheduled '
-                    f'churn prediction, we wanted to share with you:\n'
-                    f'\n    - Date: from {dates["start_date"]} to {dates["end_date"]}'
-                    f'\n    - Total number of High-risk churners: {len(high_risk)}'
-                    f'\n\nPlease check the dashboard for more information.'
-                    f'\nBest Regards,\n'
-                    f'[Name]\n'
-                    f'ML engineer\n'
-                    f'[Company]')
+            body = (f"Dear Analysis team,\n\n"
+                    f"We have completed our latest scheduled churn prediction, we wanted to share with you:\n"
+                    f"\n    - Date: from {data['start_date']} to {data['end_date']}"
+                    f"\n    - Total Predictions: {total_preds}"
+                    f"\n    - Total Churners: {churners} ({churn_perc:.2f}% of total predictions)"
+                    f"\n    - Total High-risk Churners: {high_risk} ({high_risk_perc:.2f}% of total churners)"
+                    f"\n\nPlease check the dashboard for more information."
+                    f"\nBest Regards,\n"
+                    f"[Your Name]\n"
+                    f"ML Engineer\n"
+                    f"[Your Company]")
             send_email(sender, recipient, subject, body)
             logging.info(f'Email sent!')
         else:
@@ -150,7 +156,7 @@ def prediction_job():
             body = (f'Dear Analysis team,\n'
                     f'\nWe have completed our latest scheduled '
                     f'churn prediction, we wanted to share with you:\n'
-                    f'\n    - Date: from {dates["start_date"]} to {dates["end_date"]}'
+                    f'\n    - Date: from {data["start_date"]} to {data["end_date"]}'
                     f'\n    - Total number of churners: {churners}'
                     f'\n    - Percentage of churners: {churn_perc}%\n'
                     f'\nWe encourage you to review the attached detailed report for a comprehensive understanding of the churn analysis. Please feel free to reach out if you have any questions or need further clarification on any aspects of this report.\n'
