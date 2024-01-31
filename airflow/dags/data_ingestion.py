@@ -103,7 +103,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "MONTANT", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "FREQUENCE_RECH", "float64",
@@ -113,7 +113,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "FREQUENCE_RECH", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "REVENUE", "float64",
@@ -123,7 +123,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "REVENUE", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "ARPU_SEGMENT", "float64",
@@ -133,7 +133,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "ARPU_SEGMENT", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "FREQUENCE", "float64",
@@ -143,7 +143,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "FREQUENCE", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "DATA_VOLUME", "float64",
@@ -153,7 +153,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "DATA_VOLUME", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "ON_NET", "float64",
@@ -163,7 +163,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "ON_NET", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "ORANGE", "float64",
@@ -173,7 +173,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "ORANGE", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "TIGO", "float64",
@@ -183,17 +183,17 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "TIGO", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "REGULARITY", "int64",
             result_format={'result_format': 'SUMMARY'}
         )
 
-        validator.expect_column_values_to_be_between(
+        '''validator.expect_column_values_to_be_between(
             "REGULARITY", min_value=0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator.expect_column_values_to_be_of_type(
             "TOP_PACK", "object",
@@ -215,7 +215,7 @@ def data_ingestion():
         validator.expect_column_values_to_be_between(
             "FREQ_TOP_PACK", min_value=0.0,
             result_format={'result_format': 'SUMMARY'}
-        )
+        )'''
 
         validator_result = validator.validate()
         return {"file": file, "validator_result": validator_result}

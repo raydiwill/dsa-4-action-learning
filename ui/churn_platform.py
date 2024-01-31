@@ -1,19 +1,7 @@
 import datetime
 import streamlit as st
 import pandas as pd
-from sqlalchemy.exc import SQLAlchemyError
-import requests
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
-from pathlib import Path
-from email.mime.text import MIMEText
-import smtplib
-import sys
-sys.path.append('../')
-from api.models import *
-#from api.setup_db import get_db, SessionLocal
-#from api.config import *
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 import streamlit as st
 import os
@@ -27,35 +15,21 @@ env_path = Path('.') / 'myenv.env'
 load_dotenv(dotenv_path=env_path)
 
 dummy_prediction_data = {"user_id": 1, "prediction": "churn", "probability": 0.75}
-user_email = "duong.tranhn1102@gmail.com"
 
+dummy_past_predictions = [
+    {"user_id": 1, "prediction": "churn", "actual_result": "non-churn", "risk_level": "high"},
+    {"user_id": 2, "prediction": "non-churn", "actual_result": "non-churn", "risk_level": "low"},
+    {"user_id": 3, "prediction": "churn", "actual_result": "churn", "risk_level": "high"},
+    {"user_id": 4, "prediction": "non-churn", "actual_result": "non-churn", "risk_level": "low"},
+    {"user_id": 5, "prediction": "churn", "actual_result": "churn", "risk_level": "high"}
+]
 
-def send_email(sender, recipient, subject, message):
-    # Create the message
-    message = MIMEText(message)
-    message["Subject"] = subject
-    message["From"] = sender
-    message["To"] = recipient
+def get_predictions():
+    return dummy_prediction_data
 
-    # Establish a connection with the SMTP server
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(user_email, "ulws pdlo avlh oggs")
-        server.sendmail(sender, recipient, message.as_string())
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
 
-
-def fetch_data_from_api(api_url, data):
-    try:
-        url = api_url
-        response = requests.get(url, json=data)
-        if response.status_code == 200:
-            data = response.json()
-            return pd.DataFrame(data)
-        else:
-            st.error(f"Error fetching data from API. Status code: {response.status_code}")
-    except Exception as e:
-        st.error(f"Error fetching data from API: {e}")
-    return pd.DataFrame()
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
 
 
 def submit_feedback(selected_customers, used_feedback):
@@ -66,27 +40,33 @@ def submit_feedback(selected_customers, used_feedback):
         "port": "5432",
         "database": "dl"
     }
-    # print("Selected Customers:", selected_customers)
 
-    engine = create_engine("postgresql://postgres:khanhduong@localhost:5432/dl")
+    # Connection to the database
+    engine = create_engine(f"postgresql+psycopg2://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
 
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    try:
-        if not selected_customers:
-            st.warning("No records found for selected customers.")
-        else:
-            for user in selected_customers:
-                user_fb = ModelFeedbacks(
-                    user_id=user,
-                    feedbacks=used_feedback
-                )
-                session.add(user_fb)
+    # Iterate over selected customers and update feedback in the database
+    for user_id in selected_customers:
+        feedback_data = {
+            "user_id": user_id,
+            "feedback": feedback
+        }
 
-            session.commit()
-            st.success("Feedback submitted successfully.")
+        try:
+            # Build the update statement
+            stmt = update(test_pred_table).where(test_pred_table.c.user_id == feedback_data['user_id']).values(feedback=feedback_data['feedback'])
+
+            # Execute the update statement
+            result = engine.execute(stmt)
+            
+            # Check if the update was successful
+            if result.rowcount > 0:
+                st.success(f"Feedback updated for user {user_id}")
+            else:
+                st.warning(f"No records updated for user {user_id}")
 
     except SQLAlchemyError as e:
         session.rollback()
@@ -123,20 +103,8 @@ def filter_customers_by_risk(past_predictions, risk):
 def past_predictions_page(api_url):
     st.title("Past Predictions")
 
-    start_date = st.date_input("Start Date")
-    today = datetime.date.today()
-    end_date = st.date_input("End Date",
-                             max_value=today + datetime.timedelta(days=1))
-    
-    data = {
-        "start_date": start_date.strftime("%Y-%m-%d"),
-        "end_date": end_date.strftime("%Y-%m-%d"),
-        "limit": 25
-    }
-    
-    response = requests.get(api_url, json=data)
-    print(response)
-    past_predictions = pd.DataFrame(response.json())
+    # Fetch data from the database
+    past_predictions = fetch_data_from_database()
 
     # Display a table with fetched data
     st.table(past_predictions)
@@ -152,45 +120,23 @@ def past_predictions_page(api_url):
 
         # Selection mechanism
         selected_customers = st.multiselect("Select customers to provide feedback:", filtered_customers["user_id"].tolist())
-        st.write(selected_customers)
 
-        feedback_text = st.text_area("Provide Feedback:")
-
+        # Confirm selected choices with a button
         if st.button("Confirm Selected Customers"):
-            st.write(selected_customers)
-
-        if feedback_text and st.button("Submit Feedback"):
-            submit_feedback(selected_customers, feedback_text)
-            st.toast("Feedbacks sent!", icon="🎉")
-
-
-
-
-def send_recommendations_page():
-    st.title("Send Recommendation to Customer Service")
-
-    to_address = st.text_input("Recipient Email")
-    subject = st.text_input("Subject")
-    message = st.text_area("Message")
-
-    if st.button("Send Email"):
-        if send_email(user_email, to_address, subject, message):
-            print("Sent!")
-        st.toast("Email sent successfully.", icon="🎉")
-
+            # Popup for feedback
+            feedback_text = st.text_area("Provide Feedback:")
+            if st.button("Submit Feedback"):
+                submit_feedback(selected_customers, feedback_text)
 
 def main():
     st.set_page_config(page_title="Churn Prediction Platform", page_icon="📊")
 
     page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
 
-    #if page == "Interactive Dashboard":
-    #    interactive_dashboard()
-    if page == "Past Predictions":
-        past_predictions_page(GET_URL)
-    elif page == "Send Recommendations":
-        send_recommendations_page()
-
+    if page == "Interactive Dashboard":
+        interactive_dashboard()
+    elif page == "Past Predictions":
+        past_predictions_page()
 
 if __name__ == "__main__":
     main()
