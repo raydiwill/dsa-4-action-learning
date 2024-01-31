@@ -8,6 +8,15 @@ from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, 
 from pathlib import Path
 from email.mime.text import MIMEText
 import smtplib
+import sys
+sys.path.append('../')
+from api.models import *
+#from api.setup_db import get_db, SessionLocal
+#from api.config import *
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
+import streamlit as st
+import os
 
 
 GET_URL = "http://localhost:8050/past-predictions/"
@@ -35,6 +44,7 @@ def send_email(sender, recipient, subject, message):
         server.sendmail(sender, recipient, message.as_string())
 
 
+
 def fetch_data_from_api(api_url, data):
     try:
         url = api_url
@@ -49,10 +59,6 @@ def fetch_data_from_api(api_url, data):
     return pd.DataFrame()
 
 
-def get_predictions():
-    return dummy_prediction_data
-
-
 def submit_feedback(selected_customers, feedback):
     db_config = {
         "user": "postgres",
@@ -61,41 +67,34 @@ def submit_feedback(selected_customers, feedback):
         "port": "5432",
         "database": "churn"
     }
+    #print("Selected Customers:", selected_customers)
 
-    # Connection to the database
-    engine = create_engine(f"postgresql+psycopg2://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
+    engine = create_engine(f"postgresql://postges:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
 
-    # Load table metadata
-    metadata = MetaData()
-    test_pred_table = Table('churn.test_pred', metadata, autoload_with=engine)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
-    # Iterate over selected customers and update feedback in the database
-    for user_id in selected_customers:
-        feedback_data = {
-            "user_id": user_id,
-            "feedback": feedback
-        }
+    try:
+        if not selected_customers:
+            st.warning("No records found for selected customers.")
+        else:
+            user_fb = ModelFeedbacks(
+                user_id=selected_customers,
+                feedback=feedback
+            )
+            session.add(user_fb)
 
-        try:
-            # Build the update statement
-            stmt = update(test_pred_table).where(test_pred_table.c.user_id == feedback_data['user_id']).values(feedback=feedback_data['feedback'])
+            session.commit()
+            st.success("Feedback submitted successfully.")
 
-            # Execute the update statement
-            result = engine.execute(stmt)
-            
-            # Check if the update was successful
-            if result.rowcount > 0:
-                st.success(f"Feedback updated for user {user_id}")
-            else:
-                st.warning(f"No records updated for user {user_id}")
+    except SQLAlchemyError as e:
+        session.rollback()
+        st.error(f"Error during feedback submission: {e}")
 
-        except SQLAlchemyError as e:
-            st.error(f"Error during update: {e}")
+    finally:
+        session.close()
 
-    # Close the database connection
-    engine.dispose()
-
-    st.success("Feedback submitted successfully.")
 
 
 def interactive_dashboard():
@@ -133,9 +132,11 @@ def past_predictions_page(api_url):
     data = {
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d")
+        #"pred_source": prediction_source
     }
     
     response = requests.get(api_url, json=data)
+    print(response)
     past_predictions = pd.DataFrame(response.json())
 
     # Display a table with fetched data
@@ -152,13 +153,16 @@ def past_predictions_page(api_url):
 
         # Selection mechanism
         selected_customers = st.multiselect("Select customers to provide feedback:", filtered_customers["user_id"].tolist())
-
+        st.write(selected_customers)
+        #st.write(type(selected_customers))
         # Confirm selected choices with a button
         if st.button("Confirm Selected Customers"):
             # Popup for feedback
             feedback_text = st.text_area("Provide Feedback:")
+            st.write(feedback_text)
             if st.button("Submit Feedback"):
                 submit_feedback(selected_customers, feedback_text)
+                st.toast("Feedbacks sent!", icon="🎉")
 
 
 def send_recommendations_page():
