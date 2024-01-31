@@ -44,7 +44,6 @@ def send_email(sender, recipient, subject, message):
         server.sendmail(sender, recipient, message.as_string())
 
 
-
 def fetch_data_from_api(api_url, data):
     try:
         url = api_url
@@ -59,17 +58,17 @@ def fetch_data_from_api(api_url, data):
     return pd.DataFrame()
 
 
-def submit_feedback(selected_customers, feedback):
+def submit_feedback(selected_customers, used_feedback):
     db_config = {
         "user": "postgres",
-        "password": "0",
+        "password": "khanhduong",
         "host": "localhost",
         "port": "5432",
-        "database": "churn"
+        "database": "dl"
     }
-    #print("Selected Customers:", selected_customers)
+    # print("Selected Customers:", selected_customers)
 
-    engine = create_engine(f"postgresql://postges:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}")
+    engine = create_engine("postgresql://postgres:khanhduong@localhost:5432/dl")
 
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -79,11 +78,12 @@ def submit_feedback(selected_customers, feedback):
         if not selected_customers:
             st.warning("No records found for selected customers.")
         else:
-            user_fb = ModelFeedbacks(
-                user_id=selected_customers,
-                feedback=feedback
-            )
-            session.add(user_fb)
+            for user in selected_customers:
+                user_fb = ModelFeedbacks(
+                    user_id=user,
+                    feedbacks=used_feedback
+                )
+                session.add(user_fb)
 
             session.commit()
             st.success("Feedback submitted successfully.")
@@ -94,7 +94,6 @@ def submit_feedback(selected_customers, feedback):
 
     finally:
         session.close()
-
 
 
 def interactive_dashboard():
@@ -131,8 +130,8 @@ def past_predictions_page(api_url):
     
     data = {
         "start_date": start_date.strftime("%Y-%m-%d"),
-        "end_date": end_date.strftime("%Y-%m-%d")
-        #"pred_source": prediction_source
+        "end_date": end_date.strftime("%Y-%m-%d"),
+        "limit": 25
     }
     
     response = requests.get(api_url, json=data)
@@ -154,15 +153,17 @@ def past_predictions_page(api_url):
         # Selection mechanism
         selected_customers = st.multiselect("Select customers to provide feedback:", filtered_customers["user_id"].tolist())
         st.write(selected_customers)
-        #st.write(type(selected_customers))
-        # Confirm selected choices with a button
+
+        feedback_text = st.text_area("Provide Feedback:")
+
         if st.button("Confirm Selected Customers"):
-            # Popup for feedback
-            feedback_text = st.text_area("Provide Feedback:")
-            st.write(feedback_text)
-            if st.button("Submit Feedback"):
-                submit_feedback(selected_customers, feedback_text)
-                st.toast("Feedbacks sent!", icon="🎉")
+            st.write(selected_customers)
+
+        if feedback_text and st.button("Submit Feedback"):
+            submit_feedback(selected_customers, feedback_text)
+            st.toast("Feedbacks sent!", icon="🎉")
+
+
 
 
 def send_recommendations_page():
@@ -183,9 +184,9 @@ def main():
 
     page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
 
-    if page == "Interactive Dashboard":
-        interactive_dashboard()
-    elif page == "Past Predictions":
+    #if page == "Interactive Dashboard":
+    #    interactive_dashboard()
+    if page == "Past Predictions":
         past_predictions_page(GET_URL)
     elif page == "Send Recommendations":
         send_recommendations_page()
