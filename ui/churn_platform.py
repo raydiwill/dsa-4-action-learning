@@ -17,10 +17,18 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 import streamlit as st
 import os
-
+from chatbot import chatbot_ui
 
 GET_URL = "http://localhost:8050/past-predictions/"
 
+def is_user_logged_in():
+    return 'is_logged_in' in st.session_state
+
+
+# Function to log in the user
+def login(username, password):
+    # Replace this with your actual authentication logic
+    return username == 'admin' and password == 'admin'
 
 # Load environment variables from .env file
 env_path = Path('.') / 'myenv.env'
@@ -61,14 +69,14 @@ def fetch_data_from_api(api_url, data):
 def submit_feedback(selected_customers, used_feedback):
     db_config = {
         "user": "postgres",
-        "password": "khanhduong",
+        "password": "0",
         "host": "localhost",
         "port": "5432",
-        "database": "dl"
+        "database": "churn"
     }
     # print("Selected Customers:", selected_customers)
 
-    engine = create_engine("postgresql://postgres:khanhduong@localhost:5432/dl")
+    engine = create_engine("postgresql://postgres:0@localhost:5432/churn")
 
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -99,6 +107,18 @@ def submit_feedback(selected_customers, used_feedback):
 def interactive_dashboard():
     st.title("Churn Prediction Dashboard")
 
+    # Check if the user is logged in
+    if not is_user_logged_in():
+        st.warning("Please log in to access this page.")
+        return
+
+    # Logout button
+    if st.button("Logout"):
+        # Clear session state to log out the user
+        del st.session_state.is_logged_in
+        st.success("Logout successful!")
+        st.experimental_rerun()
+
     predictions = get_predictions()
 
     st.subheader("Analyze Returned Predictions:")
@@ -123,17 +143,28 @@ def filter_customers_by_risk(past_predictions, risk):
 def past_predictions_page(api_url):
     st.title("Past Predictions")
 
+    # Check if the user is logged in
+    if not is_user_logged_in():
+        st.warning("Please log in to access this page.")
+        return
+
+    # Logout button
+    if st.button("Logout"):
+        # Clear session state to log out the user
+        del st.session_state.is_logged_in
+        st.success("Logout successful!")
+        st.experimental_rerun()
+
     start_date = st.date_input("Start Date")
     today = datetime.date.today()
-    end_date = st.date_input("End Date",
-                             max_value=today + datetime.timedelta(days=1))
-    
+    end_date = st.date_input("End Date", max_value=today + datetime.timedelta(days=1))
+
     data = {
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d"),
         "limit": 25
     }
-    
+
     response = requests.get(api_url, json=data)
     print(response)
     past_predictions = pd.DataFrame(response.json())
@@ -166,6 +197,50 @@ def past_predictions_page(api_url):
 
 
 
+
+def send_recommendations_page():
+    st.title("Send Recommendation to Customer Service")
+
+    # Check if the user is logged in
+    if not is_user_logged_in():
+        st.warning("Please log in to access this page.")
+        return
+
+    # Logout button
+    if st.button("Logout"):
+        # Clear session state to log out the user
+        del st.session_state.is_logged_in
+        st.success("Logout successful!")
+        st.experimental_rerun()
+
+
+    to_address = st.text_input("Recipient Email")
+    subject = st.text_input("Subject")
+    message = st.text_area("Message")
+
+    if st.button("Send Email"):
+        if send_email(user_email, to_address, subject, message):
+            print("Sent!")
+        st.toast("Email sent successfully.", icon="🎉")
+
+
+# Function to display login page
+def display_login_page():
+    st.title("Login")
+    username = st.text_input("Username:")
+    password = st.text_input("Password:", type="password")
+
+    if st.button("Login"):
+        if login(username, password):
+            # Set session state to indicate the user is logged in
+            st.session_state.is_logged_in = True
+            st.success("Login successful!")
+        else:
+            st.error("Invalid username or password. Please try again.")
+
+
+# Main function
+
 def send_recommendations_page():
     st.title("Send Recommendation to Customer Service")
 
@@ -182,14 +257,44 @@ def send_recommendations_page():
 def main():
     st.set_page_config(page_title="Churn Prediction Platform", page_icon="📊")
 
+    # Check if the user is logged in
+    if not is_user_logged_in():
+        # Display login page if not logged in
+        display_login_page()
+        return
+
+    # User is logged in, display the selected page
+    page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
+    # Define the chatbot toggle state in the session
+    if 'show_chatbot' not in st.session_state:
+        st.session_state['show_chatbot'] = False
+
     page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
 
     #if page == "Interactive Dashboard":
     #    interactive_dashboard()
     if page == "Past Predictions":
+    if page == "Interactive Dashboard":
+        interactive_dashboard()
+    elif page == "Past Predictions":
         past_predictions_page(GET_URL)
     elif page == "Send Recommendations":
         send_recommendations_page()
+
+    elif page == "Send Recommendations":
+        send_recommendations_page()
+
+    if st.session_state['show_chatbot']:
+        chatbot_ui()
+
+    # Place an empty container at the bottom of the page
+    chat_button_container = st.empty()
+
+    # Inside the container, create the toggle chat button
+    chat_button_container.button("Toggle Chat", key="toggle_chat",
+                                 on_click=lambda: st.session_state.update(
+                                     show_chatbot=not st.session_state[
+                                         'show_chatbot']))
 
 
 if __name__ == "__main__":
