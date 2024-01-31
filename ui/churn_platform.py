@@ -17,7 +17,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 import streamlit as st
 import os
-
+from chatbot import chatbot_ui
 
 GET_URL = "http://localhost:8050/past-predictions/"
 
@@ -166,6 +166,7 @@ def past_predictions_page(api_url):
     }
 
     response = requests.get(api_url, json=data)
+    print(response)
     past_predictions = pd.DataFrame(response.json())
 
     # Display a table with fetched data
@@ -193,7 +194,7 @@ def past_predictions_page(api_url):
             submit_feedback(selected_customers, feedback_text)
             st.toast("Feedbacks sent!", icon="🎉")
 
-        
+
 
 
 
@@ -211,7 +212,7 @@ def send_recommendations_page():
         del st.session_state.is_logged_in
         st.success("Logout successful!")
         st.experimental_rerun()
-    
+
 
     to_address = st.text_input("Recipient Email")
     subject = st.text_input("Subject")
@@ -239,6 +240,20 @@ def display_login_page():
 
 
 # Main function
+
+def send_recommendations_page():
+    st.title("Send Recommendation to Customer Service")
+
+    to_address = st.text_input("Recipient Email")
+    subject = st.text_input("Subject")
+    message = st.text_area("Message")
+
+    if st.button("Send Email"):
+        if send_email(user_email, to_address, subject, message):
+            print("Sent!")
+        st.toast("Email sent successfully.", icon="🎉")
+
+
 def main():
     st.set_page_config(page_title="Churn Prediction Platform", page_icon="📊")
 
@@ -250,13 +265,36 @@ def main():
 
     # User is logged in, display the selected page
     page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
+    # Define the chatbot toggle state in the session
+    if 'show_chatbot' not in st.session_state:
+        st.session_state['show_chatbot'] = False
 
+    page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
+
+    #if page == "Interactive Dashboard":
+    #    interactive_dashboard()
+    if page == "Past Predictions":
     if page == "Interactive Dashboard":
         interactive_dashboard()
     elif page == "Past Predictions":
         past_predictions_page(GET_URL)
     elif page == "Send Recommendations":
         send_recommendations_page()
+
+    elif page == "Send Recommendations":
+        send_recommendations_page()
+
+    if st.session_state['show_chatbot']:
+        chatbot_ui()
+
+    # Place an empty container at the bottom of the page
+    chat_button_container = st.empty()
+
+    # Inside the container, create the toggle chat button
+    chat_button_container.button("Toggle Chat", key="toggle_chat",
+                                 on_click=lambda: st.session_state.update(
+                                     show_chatbot=not st.session_state[
+                                         'show_chatbot']))
 
 
 if __name__ == "__main__":
