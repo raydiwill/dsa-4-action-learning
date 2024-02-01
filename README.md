@@ -2,10 +2,9 @@ EPITA 2023-2024 Action Learning project
 =====
 
 ### Collaborators
-     Markup : * Bullet list
-     Khanh Duong Tran
-     Johnfredrick Owotorufa
-     Shashank Vaidya
+     - Khanh Duong Tran
+     - Johnfredrick Owotorufa
+     - Shashank Vaidya
 
 Welcome to our immersive journey in Data Science! In this project, we delve into the dynamic landscape of Telecommunication Churn Prediction, combining the prowess of Machine Learning (ML) with cutting-edge technologies to empower companies in anticipating and mitigating customer attrition.
 
