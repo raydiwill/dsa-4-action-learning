@@ -58,7 +58,7 @@ Embark on a journey through the core components of our project:
       `# Root directory`<br>
       `python generate_files.py`
 
-## Accessing Front-end:
+## Accessing Front-end
 For the webapp, go to localhost:8501.
 
 ## Accessing Airflow:
