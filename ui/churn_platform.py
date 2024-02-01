@@ -4,7 +4,7 @@ import pandas as pd
 from sqlalchemy.exc import SQLAlchemyError
 import requests
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine
 from pathlib import Path
 from email.mime.text import MIMEText
 import smtplib
@@ -14,8 +14,6 @@ from api.models import *
 #from api.setup_db import get_db, SessionLocal
 #from api.config import *
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
-import streamlit as st
 import os
 from chatbot import chatbot_ui
 
@@ -35,7 +33,7 @@ def login(username, password):
 env_path = Path('.') / 'myenv.env'
 load_dotenv(dotenv_path=env_path)
 
-dummy_prediction_data = {"user_id": 1, "prediction": "churn", "probability": 0.75}
+
 user_email = "duong.tranhn1102@gmail.com"
 
 
@@ -137,7 +135,7 @@ def interactive_dashboard():
         st.experimental_rerun()
 
     dashboard_links = {
-        "Model Predictions": "http://localhost:3000/goto/hb94w-tSR?orgId=1",
+        "Model Predictions": "http://localhost:3000/public-dashboards/39717711dbca4123a5ebaeeaffc89633",
         "Customers Profiling": "http://localhost:3000/goto/8---r-pIR?orgId=1",
         "Data Quality": "http://localhost:3000/goto/i9Rn_-pSg?orgId=1",
         "Monitoring Performance": "http://localhost:3000/goto/ceBH6apIg?orgId=1"
@@ -150,6 +148,7 @@ def interactive_dashboard():
 
     # Display the selected dashboard
     st.write("You selected:", dashboard)
+    st.markdown(f'<iframe src="{dashboard_links[dashboard]}" width="600" height="600"></iframe>', unsafe_allow_html=True)
 
     if dashboard == "Monitoring Performance":
         uploaded_file = st.file_uploader(
