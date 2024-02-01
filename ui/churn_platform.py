@@ -4,7 +4,7 @@ import pandas as pd
 from sqlalchemy.exc import SQLAlchemyError
 import requests
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine
 from pathlib import Path
 from email.mime.text import MIMEText
 import smtplib
@@ -14,12 +14,11 @@ from api.models import *
 #from api.setup_db import get_db, SessionLocal
 #from api.config import *
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
-import streamlit as st
 import os
 from chatbot import chatbot_ui
 
 GET_URL = "http://localhost:8050/past-predictions/"
+
 
 def is_user_logged_in():
     return 'is_logged_in' in st.session_state
@@ -34,7 +33,7 @@ def login(username, password):
 env_path = Path('.') / 'myenv.env'
 load_dotenv(dotenv_path=env_path)
 
-dummy_prediction_data = {"user_id": 1, "prediction": "churn", "probability": 0.75}
+
 user_email = "duong.tranhn1102@gmail.com"
 
 
@@ -104,6 +103,22 @@ def submit_feedback(selected_customers, used_feedback):
         session.close()
 
 
+# Function to generate recommendations
+def generate_recommendations():
+    return [
+        "1. Personalize communication with high-risk customers.",
+        "2. Offer loyalty programs for long-term customers.",
+        "3. Review and adjust pricing strategies for popular service packages.",
+        "4. Enhance customer service and support.",
+        "5. Implement targeted marketing campaigns in high-churn regions.",
+    ]
+
+
+def save_to_database(df, table_name, database_uri):
+    engine = create_engine(database_uri)
+    df.to_sql(table_name, engine, if_exists='replace', index=False)
+
+
 def interactive_dashboard():
     st.title("Churn Prediction Dashboard")
 
@@ -119,21 +134,51 @@ def interactive_dashboard():
         st.success("Logout successful!")
         st.experimental_rerun()
 
-    predictions = get_predictions()
+    dashboard_links = {
+        "Model Predictions": "http://localhost:3000/public-dashboards/39717711dbca4123a5ebaeeaffc89633",
+        "Customers Profiling": "http://localhost:3000/goto/8---r-pIR?orgId=1",
+        "Data Quality": "http://localhost:3000/goto/i9Rn_-pSg?orgId=1",
+        "Monitoring Performance": "http://localhost:3000/goto/ceBH6apIg?orgId=1"
+    }
 
-    st.subheader("Analyze Returned Predictions:")
-    st.write(f"Customer ID: {predictions['user_id']}")
-    st.write(f"Prediction: {predictions['prediction']}")
-    st.write(f"Probability: {predictions['probability']}")
+    # Selection box for choosing the dashboard
+    dashboard = st.selectbox("Which dashboard?",
+                             ("Model Predictions", "Customers Profiling",
+                              "Data Quality", "Monitoring Performance"))
 
-    if predictions['prediction'] == 'churn' and predictions['probability'] > 0.5:
-        st.warning("Churn predicted with high probability. Recommend retention strategies.")
+    # Display the selected dashboard
+    st.write("You selected:", dashboard)
+    st.markdown(f'<iframe src="{dashboard_links[dashboard]}" width="600" height="600"></iframe>', unsafe_allow_html=True)
 
-    st.subheader("Customer Profiling:")
-    # Add customer profiling details here
+    if dashboard == "Monitoring Performance":
+        uploaded_file = st.file_uploader(
+            "Upload a CSV file", type="csv")
+        if uploaded_file is not None:
+            # Read the uploaded CSV file into a DataFrame
+            data = pd.read_csv(uploaded_file)
+            database_uri = 'postgresql://postgres:khanhduong@localhost:5432/dl'
+            table_name = 'customers_report'
 
-    st.subheader("CS Team Reports:")
-    # Display feedback form here
+            save_to_database(data, table_name, database_uri)
+            st.success("Data saved to database successfully!")
+
+    # Provide a clickable link to the selected dashboard
+    if dashboard in dashboard_links:
+        url = dashboard_links[dashboard]
+        st.markdown(f"[Go to {dashboard} Dashboard]({url})",
+                    unsafe_allow_html=True)
+
+    if dashboard == "Model Predictions":
+        if st.button('Generate Retention Recommendations'):
+            # Call the function to generate recommendations
+            recommendations = generate_recommendations()
+
+            # Display each recommendation
+            st.subheader("Recommended Retention Strategies:")
+            for rec in recommendations:
+                st.write(rec)
+        else:
+            st.write("Click the button to generate retention strategies.")
 
 
 def filter_customers_by_risk(past_predictions, risk):
@@ -167,7 +212,6 @@ def past_predictions_page(api_url):
     }
 
     response = requests.get(api_url, json=data)
-    print(response)
     past_predictions = pd.DataFrame(response.json())
 
     # Display a table with fetched data
@@ -196,9 +240,6 @@ def past_predictions_page(api_url):
             st.toast("Feedbacks sent!", icon="🎉")
 
 
-
-
-
 def send_recommendations_page():
     st.title("Send Recommendation to Customer Service")
 
@@ -213,7 +254,6 @@ def send_recommendations_page():
         del st.session_state.is_logged_in
         st.success("Logout successful!")
         st.experimental_rerun()
-
 
     to_address = st.text_input("Recipient Email")
     subject = st.text_input("Subject")
@@ -238,19 +278,6 @@ def display_login_page():
             st.success("Login successful!")
         else:
             st.error("Invalid username or password. Please try again.")
-
-
-def send_recommendations_page():
-    st.title("Send Recommendation to Customer Service")
-
-    to_address = st.text_input("Recipient Email")
-    subject = st.text_input("Subject")
-    message = st.text_area("Message")
-
-    if st.button("Send Email"):
-        if send_email(user_email, to_address, subject, message):
-            print("Sent!")
-        st.toast("Email sent successfully.", icon="🎉")
 
 
 def main():
