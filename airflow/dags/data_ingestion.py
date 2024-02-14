@@ -29,10 +29,6 @@ from setup_db import *
     start_date=days_ago(n=0, hour=1)
 )
 def data_ingestion():
-    default_folder = "/opt/data/default"
-    good_folder = "/opt/data/good"
-    failed_folder = "/opt/data/bad"
-
     @task
     def read_file():
         file_pattern = os.path.join(default_folder, "*.csv")
