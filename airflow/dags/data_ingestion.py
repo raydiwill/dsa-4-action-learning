@@ -41,7 +41,7 @@ def send_email(sender, recipient, subject, message):
 @dag(
     dag_id='data_ingestion',
     description='Take files and validate the quality',
-    tags=['dsp', 'validate', 'ingestion'],
+    tags=['al', 'validate', 'ingestion'],
     schedule_interval='*/10 * * * * *',
     #schedule=timedelta(minutes=0.5),
     start_date=days_ago(n=0, hour=1)
@@ -293,7 +293,6 @@ def data_ingestion():
     def save_quality_issues(validator_output, db_url):
         validator_result = validator_output["validator_result"]
         engine = create_engine(db_url)
-        Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         session = Session()
 
