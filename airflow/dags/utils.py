@@ -1,7 +1,14 @@
 from email.mime.text import MIMEText
 import smtplib
 
+default_folder = "/opt/data/default"
+good_folder = "/opt/data/good"
+failed_folder = "/opt/data/bad"
+
 DB_URL = "postgresql://postgres:khanhduong@host.docker.internal:5432/dl"
+POST_URL = "http://host.docker.internal:8050/predict/"
+GET_URL = "http://host.docker.internal:8050/past-predictions/"
+
 user_email = "duong.tranhn1102@gmail.com"
 recipient_email = "trankhanhduong112@gmail.com"
 
