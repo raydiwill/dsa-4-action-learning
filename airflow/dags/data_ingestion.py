@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from fastapi import Depends
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from email.mime.text import MIMEText
+from utils import *
 import datetime
 import random
 import glob
@@ -13,29 +13,11 @@ import pandas as pd
 import shutil
 import great_expectations as gx
 import logging
-import smtplib
 
 import sys
 sys.path.append('/opt/api')
 from models import *
 from setup_db import *
-
-DB_URL = "postgresql://postgres:khanhduong@host.docker.internal:5432/dl"
-user_email = "duong.tranhn1102@gmail.com"
-
-
-def send_email(sender, recipient, subject, message):
-    # Create the message
-    message = MIMEText(message)
-    message["Subject"] = subject
-    message["From"] = sender
-    message["To"] = recipient
-
-    # Establish a connection with the SMTP server
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(user_email, "ulws pdlo avlh oggs")
-        server.sendmail(sender, recipient, message.as_string())
 
 
 @dag(
@@ -200,13 +182,6 @@ def data_ingestion():
             result_format={'result_format': 'SUMMARY'}
         )
 
-        """
-        validator.expect_column_values_to_not_be_null(
-            "TOP_PACK", mostly=0.40,
-            result_format={'result_format': 'SUMMARY'}
-        )
-        """
-
         validator.expect_column_values_to_be_of_type(
             "FREQ_TOP_PACK", "float64",
             result_format={'result_format': 'SUMMARY'}
@@ -224,7 +199,7 @@ def data_ingestion():
     def raise_alert(validator_output):
         validator_result = validator_output["validator_result"]
         sender = user_email
-        recipient = "trankhanhduong112@gmail.com"
+        recipient = recipient_email
         subject = "Data Quality Issues"
 
         failed_tests = [result for result in validator_result["results"] if

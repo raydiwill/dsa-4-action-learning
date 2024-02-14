@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from email.mime.text import MIMEText
+from utils import *
 import pandas as pd
 import logging
 import requests
 import os
-import smtplib
 
 POST_URL = "http://host.docker.internal:8050/predict/"
 GET_URL = "http://host.docker.internal:8050/past-predictions/"
