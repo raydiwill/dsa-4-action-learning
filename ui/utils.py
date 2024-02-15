@@ -1,8 +1,19 @@
 from email.mime.text import MIMEText
+import streamlit as st
 import smtplib
 
 GET_URL = "http://localhost:8050/past-predictions/"
 user_email = "duong.tranhn1102@gmail.com"
+
+
+def is_user_logged_in():
+    return 'is_logged_in' in st.session_state
+
+
+# Function to log in the user
+def login(username, password):
+    # Replace this with your actual authentication logic
+    return username == 'admin' and password == 'admin'
 
 
 def send_email(sender, recipient, subject, message):

@@ -18,15 +18,6 @@ from api.models import *
 from chatbot import chatbot_ui
 
 
-def is_user_logged_in():
-    return 'is_logged_in' in st.session_state
-
-
-# Function to log in the user
-def login(username, password):
-    # Replace this with your actual authentication logic
-    return username == 'admin' and password == 'admin'
-
 # Load environment variables from .env file
 env_path = Path('.') / 'myenv.env'
 load_dotenv(dotenv_path=env_path)
