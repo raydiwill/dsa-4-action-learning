@@ -1,17 +1,13 @@
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from email.mime.text import MIMEText
+from utils import *
 import pandas as pd
 import logging
 import requests
 import os
-import smtplib
 
-POST_URL = "http://host.docker.internal:8050/predict/"
-GET_URL = "http://host.docker.internal:8050/past-predictions/"
-folder_path = "/opt/data/good"
-user_email = "duong.tranhn1102@gmail.com"
+
 data = {
     "start_date": (datetime.today()).strftime(
         "%Y-%m-%d"),
@@ -21,26 +17,12 @@ data = {
 }
 
 
-def send_email(sender, recipient, subject, message):
-    # Create the message
-    message = MIMEText(message)
-    message["Subject"] = subject
-    message["From"] = sender
-    message["To"] = recipient
-
-    # Establish a connection with the SMTP server
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(user_email, "ulws pdlo avlh oggs")
-        server.sendmail(sender, recipient, message.as_string())
-
-
 @dag(
     dag_id='prediction_job',
     description='Take files and output predictions',
-    tags=['dsp', 'prediction_job'],
+    tags=['al', 'prediction_job'],
     #schedule_interval="0 9 1 * *",
-    schedule=timedelta(minutes=5),
+    schedule=timedelta(minutes=10),
     start_date=days_ago(n=0, hour=1),
     catchup=False
 )
@@ -56,9 +38,9 @@ def prediction_job():
 
         df_list = []
         for file in csv_files:
-            file_path = os.path.join(folder_path, file)
+            file_path = os.path.join(good_folder, file)
             df_list.append(pd.read_csv(file_path))
-            processed_file_path = os.path.join(folder_path,
+            processed_file_path = os.path.join(good_folder,
                                                f'predicted_{file}')
             os.rename(file_path, processed_file_path)
 
@@ -67,6 +49,9 @@ def prediction_job():
 
     @task
     def make_predictions(df):
+        # Drop rows where user_id is null
+        df = df.dropna(subset=['user_id'])
+        
         prediction_data = []
         for _, row in df.iterrows():
             row_data = {
@@ -106,8 +91,6 @@ def prediction_job():
             json=prediction_data
         )
 
-        # response_data = response.json()
-        # logging.info(f'{response_data}')
         return response.status_code
 
     @task
@@ -168,7 +151,7 @@ def prediction_job():
             logging.info(f'Email sent!')
 
     # Task
-    df_to_predict = check_for_new_data(folder_path)
+    df_to_predict = check_for_new_data(good_folder)
     status_code = make_predictions(df_to_predict)
     pred_dict = get_past_predictions(status_code)
     notify_team(pred_dict)
