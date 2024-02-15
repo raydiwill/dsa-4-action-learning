@@ -3,11 +3,10 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pathlib import Path
-from email.mime.text import MIMEText
+from utils import *
 import datetime
 import streamlit as st
 import pandas as pd
-import smtplib
 import requests
 import sys
 import os
@@ -17,8 +16,6 @@ from api.models import *
 #from api.setup_db import get_db, SessionLocal
 #from api.config import *
 from chatbot import chatbot_ui
-
-GET_URL = "http://localhost:8050/past-predictions/"
 
 
 def is_user_logged_in():
@@ -33,23 +30,6 @@ def login(username, password):
 # Load environment variables from .env file
 env_path = Path('.') / 'myenv.env'
 load_dotenv(dotenv_path=env_path)
-
-
-user_email = "duong.tranhn1102@gmail.com"
-
-
-def send_email(sender, recipient, subject, message):
-    # Create the message
-    message = MIMEText(message)
-    message["Subject"] = subject
-    message["From"] = sender
-    message["To"] = recipient
-
-    # Establish a connection with the SMTP server
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(user_email, "ulws pdlo avlh oggs")
-        server.sendmail(sender, recipient, message.as_string())
 
 
 def fetch_data_from_api(api_url, data):
