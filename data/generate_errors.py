@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-# Load your dataset (replace 'your_data.csv' with the path to your dataset)
+
 df = pd.read_csv('Test.csv')
 
 # Sample 1000 records from the dataset
@@ -12,7 +12,7 @@ def introduce_errors(dataframe):
     # Identifying numerical and categorical columns
     numerical_cols = (dataframe.select_dtypes(include=['number'])
                       .columns.tolist())
-    categorical_cols = ['user_id']
+    #categorical_cols = ['user_id']
 
     # Randomly change some numerical values to be less than 0
     for col in numerical_cols:
@@ -26,8 +26,9 @@ def introduce_errors(dataframe):
                                                  size=int(len(dataframe) * 0.1),
                                                  replace=False)
     dataframe.loc[user_id_indices_to_delete, 'user_id'] = None
+    return dataframe
 
 
 for i, sdf in enumerate(sampled_dfs):
-    introduce_errors(sdf)
-    sdf.to_csv(f'../data/default/customers_file_{i+1}.csv', index=False)
+    errors_df = introduce_errors(sdf)
+    errors_df.to_csv(f'../data/sample_errors/customers_file_{i+1}.csv', index=False)

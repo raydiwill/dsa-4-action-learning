@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import and_
-from models import Base, CustomerModel, ProblemStats, CustomerReport
+from models import Base, CustomerModel
 from setup_db import *
 from schema import CustomerData
 from datetime import datetime
