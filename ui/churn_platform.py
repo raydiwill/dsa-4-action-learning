@@ -151,10 +151,6 @@ def interactive_dashboard():
             st.write("Click the button to generate retention strategies.")
 
 
-def filter_customers_by_risk(past_predictions, risk):
-    return past_predictions[past_predictions['risk'].str.lower() == risk.lower()]
-
-
 def past_predictions_page(api_url):
     st.title("Past Predictions")
 
@@ -248,7 +244,10 @@ def main():
     if 'show_chatbot' not in st.session_state:
         st.session_state['show_chatbot'] = False
 
-    page = st.sidebar.selectbox("Select a page:", ["Interactive Dashboard", "Past Predictions", "Send Recommendations"])
+    page = st.sidebar.selectbox("Select a page:", 
+                                ["Interactive Dashboard", 
+                                 "Past Predictions", 
+                                 "Send Recommendations"])
 
     if page == "Interactive Dashboard":
         interactive_dashboard()
