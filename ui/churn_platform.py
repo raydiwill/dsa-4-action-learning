@@ -1,20 +1,21 @@
+from sqlalchemy.exc import SQLAlchemyError
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from pathlib import Path
+from email.mime.text import MIMEText
 import datetime
 import streamlit as st
 import pandas as pd
-from sqlalchemy.exc import SQLAlchemyError
-import requests
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from pathlib import Path
-from email.mime.text import MIMEText
 import smtplib
+import requests
 import sys
+import os
+
 sys.path.append('../')
 from api.models import *
 #from api.setup_db import get_db, SessionLocal
 #from api.config import *
-from sqlalchemy.orm import sessionmaker
-import os
 from chatbot import chatbot_ui
 
 GET_URL = "http://localhost:8050/past-predictions/"
@@ -73,7 +74,6 @@ def submit_feedback(selected_customers, used_feedback):
         "port": "5432",
         "database": "dl"
     }
-    # print("Selected Customers:", selected_customers)
 
     engine = create_engine("postgresql://postgres:khanhduong@localhost:5432/dl")
 
