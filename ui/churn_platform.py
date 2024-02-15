@@ -69,7 +69,6 @@ def submit_feedback(selected_customers, used_feedback):
     except SQLAlchemyError as e:
         session.rollback()
         st.error(f"Error during feedback submission: {e}")
-
     finally:
         session.close()
 
@@ -234,21 +233,6 @@ def send_recommendations_page():
         if send_email(user_email, to_address, subject, message):
             print("Sent!")
         st.toast("Email sent successfully.", icon="🎉")
-
-
-# Function to display login page
-def display_login_page():
-    st.title("Login")
-    username = st.text_input("Username:")
-    password = st.text_input("Password:", type="password")
-
-    if st.button("Login"):
-        if login(username, password):
-            # Set session state to indicate the user is logged in
-            st.session_state.is_logged_in = True
-            st.success("Login successful!")
-        else:
-            st.error("Invalid username or password. Please try again.")
 
 
 def main():
