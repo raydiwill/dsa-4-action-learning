@@ -7,7 +7,6 @@ from utils import *
 import datetime
 import streamlit as st
 import pandas as pd
-import requests
 import sys
 import os
 
@@ -21,20 +20,6 @@ from chatbot import chatbot_ui
 # Load environment variables from .env file
 env_path = Path('.') / 'myenv.env'
 load_dotenv(dotenv_path=env_path)
-
-
-def fetch_data_from_api(api_url, data):
-    try:
-        url = api_url
-        response = requests.get(url, json=data)
-        if response.status_code == 200:
-            data = response.json()
-            return pd.DataFrame(data)
-        else:
-            st.error(f"Error fetching data from API. Status code: {response.status_code}")
-    except Exception as e:
-        st.error(f"Error fetching data from API: {e}")
-    return pd.DataFrame()
 
 
 def submit_feedback(selected_customers, used_feedback):
@@ -177,8 +162,7 @@ def past_predictions_page(api_url):
         "limit": 25
     }
 
-    response = requests.get(api_url, json=data)
-    past_predictions = pd.DataFrame(response.json())
+    past_predictions = pd.DataFrame(fetch_data_from_api(api_url, data))
 
     # Display a table with fetched data
     st.table(past_predictions)
