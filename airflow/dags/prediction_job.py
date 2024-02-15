@@ -22,7 +22,7 @@ data = {
     description='Take files and output predictions',
     tags=['al', 'prediction_job'],
     #schedule_interval="0 9 1 * *",
-    schedule=timedelta(minutes=2),
+    schedule=timedelta(minutes=10),
     start_date=days_ago(n=0, hour=1),
     catchup=False
 )
@@ -49,6 +49,9 @@ def prediction_job():
 
     @task
     def make_predictions(df):
+        # Drop rows where user_id is null
+        df = df.dropna(subset=['user_id'])
+        
         prediction_data = []
         for _, row in df.iterrows():
             row_data = {
