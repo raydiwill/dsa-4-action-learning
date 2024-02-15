@@ -89,7 +89,7 @@ def save_to_database(df, table_name, database_uri):
     df.to_sql(table_name, engine, if_exists='replace', index=False)
 
 
-def interactive_dashboard():
+def interactive_dashboard_page():
     st.title("Churn Prediction Dashboard")
 
     # Check if the user is logged in
@@ -250,7 +250,7 @@ def main():
                                  "Send Recommendations"])
 
     if page == "Interactive Dashboard":
-        interactive_dashboard()
+        interactive_dashboard_page()
     elif page == "Past Predictions":
         past_predictions_page(GET_URL)
     elif page == "Send Recommendations":
