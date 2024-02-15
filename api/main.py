@@ -88,7 +88,7 @@ def get_predict(data: dict, db: SessionLocal = Depends(get_db)):
         and_(CustomerModel.pred_date >= start_date,
              CustomerModel.pred_date < end_date)
     )
-    limit = data["limit"]
+    limit = data.get("limit")
     if limit is not None:
         query = query.limit(limit)
 

@@ -25,7 +25,7 @@ def past_predictions_page(api_url):
     data = {
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d"),
-        "limit": 25,
+        "limit": st.number_input("Number of results:", min_value=1, value=25),
     }
 
     past_predictions = pd.DataFrame(fetch_data_from_api(api_url, data))
