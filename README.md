@@ -1,11 +1,6 @@
 EPITA 2023-2024 Action Learning project
 =====
 
-### Collaborators
-* Khanh Duong Tran
-* Johnfredrick Owotorufa
-* Shashank Vaidya
-
 Welcome to our EPITA Action Learning project! In this project, we delve into the dynamic landscape of Telecommunication Churn Prediction, combining the prowess of Deep Learning (DL) with cutting-edge technologies to empower companies in anticipating and mitigating customer attrition.
 
 ## Project Overview
@@ -102,7 +97,7 @@ docker-compose -f "docker-compose.yml" up -d --build
    python generate_errors.py
    ```
 
-## Accessing Front-end
+### Accessing Front-end
 
 For the streamlit webapp, go to localhost:8501. The login username and password is *admin*
 
@@ -110,7 +105,7 @@ The streamlit UI includes the dashboard widgets, however, if needed, Grafana UI 
 
 ![](https://github.com/raydiwill/dsa-4-action-learning/assets/97393390/0cf45fa1-397e-44f7-bcd8-26f62fd6bb01)
 
-## Accessing Airflow:
+### Accessing Airflow:
 
 * Go to localhost:8080.
 * Retrieve the Airflow admin password from the standalone_admin_password file, and use the username admin.
@@ -118,3 +113,8 @@ The streamlit UI includes the dashboard widgets, however, if needed, Grafana UI 
 
 
 ![](https://github.com/raydiwill/dsa-4-action-learning/assets/97393390/3fd0b789-c7ad-40a5-95ae-2b00eceef62a)
+
+### Collaborators
+* Khanh Duong Tran
+* Johnfredrick Owotorufa
+* Shashank Vaidya
