@@ -1,4 +1,5 @@
 from email.mime.text import MIMEText
+import great_expectations as gx
 import smtplib
 
 default_folder = "/opt/data/default"
