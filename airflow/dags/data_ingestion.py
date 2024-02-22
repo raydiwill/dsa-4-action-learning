@@ -11,7 +11,6 @@ import glob
 import os
 import pandas as pd
 import shutil
-import great_expectations as gx
 import logging
 
 import sys
