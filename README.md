@@ -36,6 +36,14 @@ Our project includes these core components designated for the Data Analysts in a
   
 * __Prediction Job__: Airflow: The automaton of predictions, scanning for new data and orchestrating the forecasting process.
 
+## Prerequisites
+
+- Python (>=3.8)
+- Docker
+- Docker Compose
+- Postgres 
+- Grafana
+
 ## Installation and Setup
 
 1. __Initial Installation__: Install project dependencies:
@@ -44,18 +52,20 @@ Our project includes these core components designated for the Data Analysts in a
 pip install -r requirements.txt
 ```
 
-2. __Install Docker and Docker Compose__ (Docker Desktop is additional)
+1. __Install Docker and Docker Compose__
 
-2. __Install Postgres database__
+The easiest way is to install [Docker Desktop](https://www.docker.com/products/docker-desktop/) as they included both 
+
+2. __Install [Postgres](https://www.postgresql.org/download/) database__
    
 3. __Build Docker image and start services__:
 
 It is needed to type the name of the image and modifying it in the yaml file.
 
 ```commandline
-cd airflow
-docker build -f Dockerfile -t {name_of_the_image}:latest . 
-docker-compose -f "docker-compose.yml" up -d --build
+# Root directory
+docker build -f airflow/Dockerfile -t {name_of_the_image}:latest . 
+docker-compose -f "airflow/docker-compose.yml" up -d --build
 ```
 
 4. __Create database, retrieve the password for user postgres__
@@ -76,7 +86,7 @@ docker-compose -f "docker-compose.yml" up -d --build
    
    ```commandline
    cd interface
-   streamlit run app.py
+   streamlit run main.py
    ```
 
    4. __Generate csv files for the DAG jobs__:
