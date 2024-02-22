@@ -48,7 +48,7 @@ def interactive_dashboard_page():
         if uploaded_file is not None:
             # Read the uploaded CSV file into a DataFrame
             data = pd.read_csv(uploaded_file)
-            database_uri = "postgresql://postgres:khanhduong@localhost:5432/dl"
+            database_uri = settings.DATABASE_URL
             table_name = "customers_report"
 
             save_to_database(data, table_name, database_uri)
