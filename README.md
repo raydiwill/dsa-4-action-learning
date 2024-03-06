@@ -1,11 +1,6 @@
 EPITA 2023-2024 Action Learning project
 =====
 
-### Collaborators
-* Khanh Duong Tran
-* Johnfredrick Owotorufa
-* Shashank Vaidya
-
 Welcome to our EPITA Action Learning project! In this project, we delve into the dynamic landscape of Telecommunication Churn Prediction, combining the prowess of Deep Learning (DL) with cutting-edge technologies to empower companies in anticipating and mitigating customer attrition.
 
 ## Project Overview
@@ -41,6 +36,14 @@ Our project includes these core components designated for the Data Analysts in a
   
 * __Prediction Job__: Airflow: The automaton of predictions, scanning for new data and orchestrating the forecasting process.
 
+## Prerequisites
+
+- Python (>=3.8)
+- Docker
+- Docker Compose
+- Postgres 
+- Grafana
+
 ## Installation and Setup
 
 1. __Initial Installation__: Install project dependencies:
@@ -49,18 +52,20 @@ Our project includes these core components designated for the Data Analysts in a
 pip install -r requirements.txt
 ```
 
-2. __Install Docker and Docker Compose__ (Docker Desktop is additional)
+1. __Install Docker and Docker Compose__
 
-2. __Install Postgres database__
+The easiest way is to install [Docker Desktop](https://www.docker.com/products/docker-desktop/) as they included both 
+
+2. __Install [Postgres](https://www.postgresql.org/download/) database__
    
 3. __Build Docker image and start services__:
 
 It is needed to type the name of the image and modifying it in the yaml file.
 
 ```commandline
-cd airflow
-docker build -f Dockerfile -t {name_of_the_image}:latest . 
-docker-compose -f "docker-compose.yml" up -d --build
+# Root directory
+docker build -f airflow/Dockerfile -t {name_of_the_image}:latest . 
+docker-compose -f "airflow/docker-compose.yml" up -d --build
 ```
 
 4. __Create database, retrieve the password for user postgres__
@@ -81,7 +86,7 @@ docker-compose -f "docker-compose.yml" up -d --build
    
    ```commandline
    cd interface
-   streamlit run app.py
+   streamlit run main.py
    ```
 
    4. __Generate csv files for the DAG jobs__:
@@ -102,7 +107,7 @@ docker-compose -f "docker-compose.yml" up -d --build
    python generate_errors.py
    ```
 
-## Accessing Front-end
+### Accessing Front-end
 
 For the streamlit webapp, go to localhost:8501. The login username and password is *admin*
 
@@ -110,7 +115,7 @@ The streamlit UI includes the dashboard widgets, however, if needed, Grafana UI 
 
 ![](https://github.com/raydiwill/dsa-4-action-learning/assets/97393390/0cf45fa1-397e-44f7-bcd8-26f62fd6bb01)
 
-## Accessing Airflow:
+### Accessing Airflow:
 
 * Go to localhost:8080.
 * Retrieve the Airflow admin password from the standalone_admin_password file, and use the username admin.
@@ -118,3 +123,8 @@ The streamlit UI includes the dashboard widgets, however, if needed, Grafana UI 
 
 
 ![](https://github.com/raydiwill/dsa-4-action-learning/assets/97393390/3fd0b789-c7ad-40a5-95ae-2b00eceef62a)
+
+### Collaborators
+* Khanh Duong Tran
+* Johnfredrick Owotorufa
+* Shashank Vaidya
