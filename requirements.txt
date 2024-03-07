@@ -19,3 +19,4 @@ psycopg2-binary
 python-multipart
 requests
 openai
+mlflow==2.11.1
