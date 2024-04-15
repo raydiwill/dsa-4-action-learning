@@ -11,6 +11,8 @@ In the dynamic landscape of the Telecommunication industry, understanding and pr
 
 Our MVP delivers real-time dashboards for monitoring key performance metrics and customer segmentation. It includes a recommendation engine for personalized retention strategies and an automation task to streamline monthly predictions. Additionally, it facilitates collaboration between analysts and customer support teams. While this MVP offers powerful retention tools, we have exciting plans for future development, including AI-driven personalized recommendations and an internal chatbot for enhanced insights.
 
+![](/images/sa.png)
+
 ## Dataset
 
 The dataset can be found here: [Zindi Hackthon](https://zindi.africa/competitions/expresso-churn-prediction/data)
@@ -27,6 +29,8 @@ Our project includes these core components designated for the Data Analysts in a
   * Interactive Dashboard, monitoring model predictions, data quality issues, model monitoring performance, and customers profiling. It also has the option to show potential retention plans recommendation.
   * View Past Prediction, allow users to view past prediction made by the models, as well as enabling users to give feedbacks on the predictions.
   * Send Recommendation emails, where users can send recommendation emails advising potential retention strategies for the customer service teams as an example.
+
+![](/images/ui_dashboard.png)
   
 * __Model Service (API)__: FastAPI: An API serving the model, handling predictions, and querying data from a database.
   
@@ -35,6 +39,8 @@ Our project includes these core components designated for the Data Analysts in a
 * __Data Ingestion Job__: Airflow, Great Expectations: An ETL process that handle data validation, ensuring its quality and reliability for our predictive model.
   
 * __Prediction Job__: Airflow: The automaton of predictions, scanning for new data and orchestrating the forecasting process.
+
+![](/images/airflow.png)
 
 ## Prerequisites
 
@@ -120,9 +126,6 @@ The streamlit UI includes the dashboard widgets, however, if needed, Grafana UI 
 * Go to localhost:8080.
 * Retrieve the Airflow admin password from the standalone_admin_password file, and use the username admin.
 * To run the jobs, it is needed to generate some dummy files from the previous step.
-
-
-![](https://github.com/raydiwill/dsa-4-action-learning/assets/97393390/3fd0b789-c7ad-40a5-95ae-2b00eceef62a)
 
 ### Collaborators
 * Khanh Duong Tran
